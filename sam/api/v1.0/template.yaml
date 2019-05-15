@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  v1.0
+
+  Sample SAM Template for v1.0
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  SixechoApi100:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      DefinitionBody:
+          Fn::Transform:
+            Name: 'AWS::Include'
+            Parameters:
+              Location: s3://[[BUCKET_NAME]]/swagger.yml
+  DigestCheckerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: digest_checker/
+      Handler: app.lambda_handler
+      Runtime: python2.7
+      Policies:
+        - AmazonVPCFullAccess
+      Environment:
+        Variables:
+          REDIS_URL: [[REDIS_URL]]
+      VpcConfig:
+        SecurityGroupIds:
+          - [[SEC_GROUP]]
+        SubnetIds:
+          - [[SUBNET1]]
+          - [[SUBNET2]]
+          - [[SUBNET3]]
+          - [[SUBNET4]]
+          - [[SUBNET5]]
+      Events:
+        DigestChecker:
+          Type: Api 
+          Properties:
+            Path: /wallet/balance
+            Method: ANY
+            RestApiId: !Ref SixechoApi100 
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  DigestCheckerFunction:
+    Description: "Digest Checker Lambda Function ARN"
+    Value: !GetAtt DigestCheckerFunction.Arn
+
+  

@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'v1.0
+
+  Sample SAM Template for v1.0
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Outputs:
+  DigestCheckerFunction:
+    Description: Digest Checker Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - DigestCheckerFunction
+      - Arn
+Resources:
+  DigestCheckerFunction:
+    Properties:
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/3be398d17ace52f8c46e34cbc059ae1e
+      Environment:
+        Variables:
+          REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
+      Events:
+        DigestChecker:
+          Properties:
+            Method: ANY
+            Path: /wallet/balance
+            RestApiId:
+              Ref: SixechoApi100
+          Type: Api
+      Handler: app.lambda_handler
+      Policies:
+      - AmazonVPCFullAccess
+      Runtime: python2.7
+      VpcConfig:
+        SecurityGroupIds:
+        - sg-0f8be61e92ce25fa2
+        SubnetIds:
+        - subnet-0eae485b84ba86984
+        - subnet-0f81bee03aeafa36e
+        - subnet-0ad3d7569bc683087
+        - subnet-0fa7a627c045e0519
+        - subnet-004048eaf89b38053
+    Type: AWS::Serverless::Function
+  SixechoApi100:
+    Properties:
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: s3://database-s3-y1kxwr2ft5fq/swagger.yml
+      StageName: prod
+    Type: AWS::Serverless::Api
+Transform: AWS::Serverless-2016-10-31

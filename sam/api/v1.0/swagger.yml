@@ -1,0 +1,109 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: 'Api Sixecho'
+  description: 'sixecho is digital content'
+schemes:
+ - https
+basePath: /sixechoApi/1.0
+host: virtserver.swaggerhub.com
+
+paths:
+  "/checker":
+    options:
+      summary: CORS support
+      description: |
+        Enable CORS by returning correct headers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - CORS
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          "default":
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,x-six-authorization,Authorization,X-Api-Key,x-amz-security-token'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+      responses:
+        200:
+          description: Default response for CORS method
+          schema:
+            "$ref": "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Headers:
+              type: string
+            Access-Control-Allow-Methods:
+              type: string
+            Access-Control-Allow-Origin:
+              type: string
+    post:
+      summary: Submit security data to create SIX and signer wallet
+      x-amazon-apigateway-auth:
+        type: "AWS_IAM"
+      x-amazon-apigateway-request-validator: "all"
+      consumes:
+      - application/json
+      - application/xml
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        200:
+          description: successful operation
+          headers:
+            Access-Control-Allow-Headers:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            "$ref": "#/definitions/Empty"
+        405:
+          description: Invalid input
+        500:
+          description: Internal server error          
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,x-six-authorization,Authorization,X-Api-Key,x-amz-security-token'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+        uri: 
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
+        passthroughBehavior: when_no_match
+        httpMethod: POST
+        type: aws 
+securityDefinitions:
+  sigv4:
+    type: apiKey
+    name: Authorization
+    in: header
+    x-amazon-apigateway-authtype: awsSigv4
+definitions:
+  ResponseData:
+    type: object
+    properties:
+      status : 
+        type : string
+        enum:
+        - success
+        - error
+      errorcode :
+        type : string
+      message :
+        type : string
+        description : error message
+  
