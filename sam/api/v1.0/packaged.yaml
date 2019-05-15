@@ -6,7 +6,7 @@ Description: 'v1.0
   '
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 120
 Outputs:
   DigestCheckerFunction:
     Description: Digest Checker Lambda Function ARN
@@ -17,7 +17,7 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/3be398d17ace52f8c46e34cbc059ae1e
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/1653f2bb6917312dd10676dd8abc1da6
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
