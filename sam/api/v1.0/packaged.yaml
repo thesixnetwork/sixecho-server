@@ -17,7 +17,7 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/1653f2bb6917312dd10676dd8abc1da6
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/901f1e14cd6b18f69e9241177bddcc3d
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379

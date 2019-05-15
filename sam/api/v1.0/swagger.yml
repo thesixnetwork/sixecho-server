@@ -10,8 +10,6 @@ schemes:
 paths:
   "/checker":
     post:
-      produces:
-      - application/json
       responses:
         '200':
           description: 200 response
@@ -21,6 +19,7 @@ paths:
       x-amazon-apigateway-integration:
         uri: 
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
+
         responses:
           default:
             statusCode: '200'
@@ -32,8 +31,6 @@ paths:
         type: aws
     options:
       consumes:
-      - application/json
-      produces:
       - application/json
       responses:
         '200':

@@ -1,7 +1,14 @@
 from datasketch import MinHash, MinHashLSH, LeanMinHash
+import numpy as np
 import json
 import os
 import uuid
+
+
+def convert_str_to_minhash(digest):
+    data_array = np.array(digest.split(","), dtype=np.uint64)
+    m1 = MinHash(hashvalues=data_array)
+    return m1
 
 
 def lambda_handler(event, context):
@@ -13,8 +20,8 @@ def lambda_handler(event, context):
         })
     uid = uuid.uuid4().hex
     try:
-        digest = event["digest"]
-        md5 = event["md5"]
+        digest_str = event["digest"]
+        md5 = event["sha256"]
     except:
         return {
             "statusCode": 200,
@@ -22,7 +29,7 @@ def lambda_handler(event, context):
                 "message": "error args"
             })
         }
-    m1 = LeanMinHash.deserialize(digest)
+    m1 = convert_str_to_minhash(digest_str)
     result = lsh.query(m1)
     if len(result) > 0:
         return{

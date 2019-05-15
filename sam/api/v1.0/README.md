@@ -212,10 +212,11 @@ sam logs -n HelloWorldFunction --stack-name v1.0 --tail
 ```bash
 _deploy sixechoAPIv100 dev
 ```
-And then please go to the cloud9 on aws console, open your project or create project IDE on cloud9 and clone this project from github. After that go to the sam/api/v1.0/digest_checker.
+And then please go to the cloud9 on aws console, open your project or create project IDE on cloud9 and clone this project from github. 
 To use this command on console cloud9.
 ```bash
 # zip file
+cd sixecho-server/sam/api/v1.0/digest_checker
 zip -r ../myDeploymentPackage.zip .
 # deploy function
 cd ..
