@@ -5,7 +5,7 @@ import uuid
 
 
 def lambda_handler(event, context):
-    redis_url, port = os.environ["REDIS_URL"].split(":")
+    host, redis_url, port = os.environ["REDIS_URL"].split(":")
     lsh = MinHashLSH(
         storage_config={
             'type': 'redis',
