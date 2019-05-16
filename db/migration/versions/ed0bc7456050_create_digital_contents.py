@@ -20,9 +20,11 @@ def upgrade():
     op.create_table(
         "digital_contents",
         sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('api_key_id', sa.String(), nullable=False),
+        sa.Column('api_key_id', sa.String(255), nullable=False),
+        sa.Column('bookd_id', sa.String(255), nullable=False),
         sa.Column('digest', sa.Text(), nullable=False),
-        sa.Column('sha256', sa.String(), nullable=False)
+        sa.Column('sha256', sa.String(255), nullable=False),
+        sa.Index("bookd_id_index", "bookd_id", unique=True)
     )
 
 
