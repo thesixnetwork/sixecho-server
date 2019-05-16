@@ -11,12 +11,19 @@ def convert_str_to_minhash(digest):
     return m1
 
 
+def insert_mysql(data):
+    return ""
+
+
 def lambda_handler(event, context):
     host, redis_url, port = os.environ["REDIS_URL"].split(":")
+    redis_url = redis_url.replace("//", "")
+    print({'host': redis_url, 'port': port})
     lsh = MinHashLSH(
         storage_config={
             'type': 'redis',
-            'redis': {'host': redis_url, 'port': port}
+            'redis': {'host': redis_url, 'port': port},
+            'basename': b'digital_checker',
         })
     uid = uuid.uuid4().hex
     try:
@@ -35,7 +42,7 @@ def lambda_handler(event, context):
         return{
             "statusCode": 200,
             "body": json.dumps({
-                "message": "hello world",
+                "message": "Duplicate",
             }),
         }
     else:
@@ -43,6 +50,6 @@ def lambda_handler(event, context):
         return{
             "statusCode": 200,
             "body": json.dumps({
-                "message": "hello world",
+                "message": "Ok",
             }),
         }

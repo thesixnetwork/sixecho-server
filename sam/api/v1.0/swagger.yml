@@ -2,7 +2,7 @@
 swagger: '2.0'
 info:
   version: '1.0'
-  title: Api Sixecho
+  title: Sixecho API v1.0
 host: 7w698x7ue7.execute-api.ap-southeast-1.amazonaws.com
 basePath: "/prod"
 schemes:
