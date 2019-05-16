@@ -16,6 +16,8 @@ paths:
           headers:
             Access-Control-Allow-Origin:
               type: string
+      security:
+      - api_key: []
       x-amazon-apigateway-integration:
         uri: 
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
@@ -54,6 +56,11 @@ paths:
         requestTemplates:
           application/json: '{"statusCode": 200}'
         type: mock
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: x-api-key
+    in: header
 x-amazon-apigateway-gateway-responses:
   DEFAULT_5XX:
     responseParameters:

@@ -1,1 +1,2 @@
 datasketch==1.4.3
+mysql-connector-python==8.0.16
