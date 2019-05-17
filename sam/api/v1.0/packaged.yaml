@@ -17,7 +17,7 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/901f1e14cd6b18f69e9241177bddcc3d
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/bee2be9b0bfc8c2cfe2b3ac3870a1b96
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
@@ -32,6 +32,12 @@ Resources:
       Handler: app.lambda_handler
       Policies:
       - AmazonVPCFullAccess
+      - Statement:
+        - Action:
+          - ssm:GetParameter
+          - ssm:GetParameters
+          Effect: Allow
+          Resource: '*'
       Runtime: python2.7
       VpcConfig:
         SecurityGroupIds:

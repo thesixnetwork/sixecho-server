@@ -28,6 +28,13 @@ Resources:
       Runtime: python2.7
       Policies:
         - AmazonVPCFullAccess
+        - Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParameters"
+            Resource: "*"                  
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379

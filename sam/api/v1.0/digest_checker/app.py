@@ -38,7 +38,8 @@ def insert_mysql(api_key_id=None, book_id=None, digest=None, sha256=None):
     mydb = mysql.connector.connect(
         host=DB_HOST,
         user=DB_USER,
-        passwd=DB_PASSWORD
+        passwd=DB_PASSWORD,
+        database="sixecho"
     )
     mycursor = mydb.cursor()
 
@@ -50,8 +51,6 @@ def insert_mysql(api_key_id=None, book_id=None, digest=None, sha256=None):
 
 
 def lambda_handler(event, context):
-    print(event)
-    print("----------------------------------")
     host, redis_url, port = os.environ["REDIS_URL"].split(":")
     redis_url = redis_url.replace("//", "")
     print({'host': redis_url, 'port': port})
@@ -62,9 +61,11 @@ def lambda_handler(event, context):
             'basename': b'digital_checker',
         })
     uid = uuid.uuid4().hex
+    body = event["body-json"]
+    api_key_id = event["context"]["api-key-id"]
     try:
-        digest_str = event["digest"]
-        sha256 = event["sha256"]
+        digest_str = body["digest"]
+        sha256 = body["sha256"]
     except:
         return {
             "statusCode": 200,
@@ -82,7 +83,7 @@ def lambda_handler(event, context):
             }),
         }
     else:
-        insert_mysql("xxx", uid, digest_str, sha256)
+        insert_mysql(api_key_id, uid, digest_str, sha256)
         lsh.insert(key=uid, minhash=m1)
         return{
             "statusCode": 200,
