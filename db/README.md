@@ -19,4 +19,5 @@ alembic upgrade head
 ### Run rollback one step
 ```bash
 alembic downgrade -1
+alembic downgrade base 
 ```

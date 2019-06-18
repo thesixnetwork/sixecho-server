@@ -7,6 +7,8 @@ Create Date: 2019-05-16 16:18:42.969682
 """
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.sql import func
+
 
 # revision identifiers, used by Alembic.
 revision = 'ed0bc7456050'
@@ -35,10 +37,14 @@ def upgrade():
         sa.Column('author', sa.String(255), nullable=False),
         sa.Column('country_of_origin', sa.String(255), nullable=False),
         sa.Column('language', sa.String(255), nullable=False),
-        sa.Column('publish_date', sa.Date, nullable=False),
+        sa.Column('publish_date', sa.DateTime, nullable=False),
+        sa.Column('meta_books', sa.Text(), nullable=False),
         sa.Column('paperback', sa.INTEGER, nullable=False),
-        sa.Index("title_index", "book_id", unique=True),
-        sa.Index("media_id_index", "book_id", unique=True))
+        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
+	
+        sa.Index("title_index", "title", unique=True),
+        sa.Index("media_id_index", "media_id", unique=True))
 
 
 def downgrade():
