@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+from datetime import datetime
 
 import boto3
 import mysql.connector
@@ -28,14 +29,15 @@ def convert_str_to_minhash(digest):
 
 
 def insert_mysql(api_key_id=None,
-                 book_id=None,
+                 media_id=None,
                  digest=None,
                  sha256=None,
-                 size_file=None):
+                 size_file=None,
+                 meta_books=None):
     """Insert digital content to mysql for keeping information about the book.
     Args:
         api_key_id(string)  - Required  : api key from api gateway
-        book_id(string)     - Required  : unique id we generate by time
+        media_id(string)     - Required  : unique id we generate by time
         digest(string)      - Required  : digest from client
         sha256(string)      - Required  : sha256 generate from client
         size_file(string)   - Required  : size of file from client
@@ -45,9 +47,22 @@ def insert_mysql(api_key_id=None,
                                    passwd=DB_PASSWORD,
                                    database="sixecho")
     mycursor = mydb.cursor()
+    json_meta_books = json.dumps(meta_books)
+    category_id = meta_books["category_id"]
+    publisher_id = meta_books("publisher_id")
+    title = meta_books["title"]
+    author = meta_books["author"]
+    country_of_origin = meta_books["country_of_origin"]
+    language = meta_books["language"]
+    paperback = meta_books["paperback"]
+    publish_date = meta_books["publish_date"]
+    publish_date_str = datetime.utcfromtimestamp(publish_date).strftime(
+        '%Y-%m-%d %H:%M:%S')
 
-    sql = "INSERT INTO digital_contents (api_key_id, book_id, digest, sha256, size_file) VALUES (%s, %s,%s,%s,%s)"
-    val = (api_key_id, book_id, digest, sha256, size_file)
+    sql = "INSERT INTO digital_contents (api_key_id, media_id, digest, sha256, size_file, meta_books,category_id,publisher_id,title,author,country_of_origin,language,paperback,publish_date) VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    val = (api_key_id, media_id, digest, sha256, size_file, json_meta_books,
+           category_id, publisher_id, title, author, country_of_origin,
+           language, paperback, publish_date_str)
     mycursor.execute(sql, val)
     mydb.commit()
     mycursor.close()
@@ -73,6 +88,7 @@ def lambda_handler(event, context):
         digest_str = body["digest"]
         sha256 = body["sha256"]
         size_file = body["size_file"]
+        meta_books = body["meta_books"]
     except:
         return {
             "statusCode": 200,
@@ -88,7 +104,8 @@ def lambda_handler(event, context):
             }),
         }
     else:
-        insert_mysql(api_key_id, uid, digest_str, sha256, size_file)
+        insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
+                     meta_books)
         lsh.insert(key=uid, minhash=m1)
         return {
             "statusCode": 200,
