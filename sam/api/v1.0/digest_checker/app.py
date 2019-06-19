@@ -11,7 +11,10 @@ from datasketch import LeanMinHash, MinHash, MinHashLSH
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from sixecho_model import Category, DigitalContent, Publisher
+from sixecho_model.category import Category
+from sixecho_model.publisher import Publisher
+
+
 
 ssm = boto3.client('ssm')
 
@@ -84,12 +87,25 @@ def validate_params(meta_books):
     country_of_origin = meta_books["country_of_origin"]
     if pycountry.countries.get(alpha_3=country_of_origin) is None:
         raise Exception("ISO 3166-1 Country is invalid.")
+    publisher_id = meta_books["publisher_id"]
+    check_publisher(publisher_id) 
+    category_id = meta_books["category_id"]
+    check_category(category_id)
 
 
 def check_publisher(publisher_id):
     session = Session()
-    session.query(User).filter_by(name='ed').first()
+    publisher = session.query(Publisher).filter_by(id=publisher_id).first()
+    if publisher is None
+    	raise Exception("Publisher ID is not exist")
+    session.close()
 
+def check_category(category_id):
+    session = Session()
+    category = session.query(Category).filter_by(key=category_id).first()
+    if category is None
+    	raise Exception("Category ID is not exist")
+    session.close()
 
 def lambda_handler(event, context):
     host, redis_url, port = os.environ["REDIS_URL"].split(":")

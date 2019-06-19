@@ -30,6 +30,7 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
+        sa.Index("key_index", "key", unique=True),
     )
 
 
