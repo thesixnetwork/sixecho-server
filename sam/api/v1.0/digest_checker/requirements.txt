@@ -1,2 +1,3 @@
 datasketch==1.4.3
 mysql-connector-python==8.0.16
+pycountry==18.12.8

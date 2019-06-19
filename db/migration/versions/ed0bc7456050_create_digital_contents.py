@@ -9,7 +9,6 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.sql import func
 
-
 # revision identifiers, used by Alembic.
 revision = 'ed0bc7456050'
 down_revision = None
@@ -35,14 +34,19 @@ def upgrade():
         sa.Column('size_file', sa.String(255), nullable=False),
         sa.Column('title', sa.String(255), nullable=False),
         sa.Column('author', sa.String(255), nullable=False),
-        sa.Column('country_of_origin', sa.String(255), nullable=False),
-        sa.Column('language', sa.String(255), nullable=False),
+        sa.Column('country_of_origin_3166_1', sa.String(255), nullable=False),
+        sa.Column('language_6391', sa.String(255), nullable=False),
         sa.Column('publish_date', sa.DateTime, nullable=False),
         sa.Column('meta_books', sa.Text(), nullable=False),
         sa.Column('paperback', sa.INTEGER, nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
-	
+        sa.Column('created_at',
+                  sa.DateTime(timezone=True),
+                  nullable=False,
+                  server_default=func.now()),
+        sa.Column('updated_at',
+                  sa.DateTime(timezone=True),
+                  nullable=False,
+                  server_default=func.now()),
         sa.Index("title_index", "title", unique=True),
         sa.Index("media_id_index", "media_id", unique=True))
 

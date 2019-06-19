@@ -6,7 +6,12 @@ from datetime import datetime
 import boto3
 import mysql.connector
 import numpy as np
+import pycountry
 from datasketch import LeanMinHash, MinHash, MinHashLSH
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from sixecho_model import Category, DigitalContent, Publisher
 
 ssm = boto3.client('ssm')
 
@@ -17,6 +22,10 @@ parameter3 = ssm.get_parameter(Name="SIXECHO_PASSWORD_DB")
 DB_HOST = parameter["Parameter"]["Value"]
 DB_USER = parameter2["Parameter"]["Value"]
 DB_PASSWORD = parameter3["Parameter"]["Value"]
+
+URL_ENGINE = "mysql://%s:%s@%s/sixecho" % (DB_USER, DB_PASSWORD, DB_HOST)
+ENGINE = create_engine(URL_ENGINE, echo=True)
+Session = sessionmaker(bind=ENGINE)
 
 
 def convert_str_to_minhash(digest):
@@ -68,6 +77,20 @@ def insert_mysql(api_key_id=None,
     mycursor.close()
 
 
+def validate_params(meta_books):
+    language = meta_books["language"]
+    if pycountry.languages.get(alpha_2=language) is None:
+        raise Exception("ISO 639-1 Language is invalid.")
+    country_of_origin = meta_books["country_of_origin"]
+    if pycountry.countries.get(alpha_3=country_of_origin) is None:
+        raise Exception("ISO 3166-1 Country is invalid.")
+
+
+def check_publisher(publisher_id):
+    session = Session()
+    session.query(User).filter_by(name='ed').first()
+
+
 def lambda_handler(event, context):
     host, redis_url, port = os.environ["REDIS_URL"].split(":")
     redis_url = redis_url.replace("//", "")
@@ -85,15 +108,16 @@ def lambda_handler(event, context):
     body = event["body-json"]
     api_key_id = event["context"]["api-key-id"]
     try:
+        for field in ["digest", "sha256", "size_file", "meta_books"]:
+            if field not in body.keys():
+                raise Exception("require %s argument." % field)
         digest_str = body["digest"]
         sha256 = body["sha256"]
         size_file = body["size_file"]
         meta_books = body["meta_books"]
-    except:
-        return {
-            "statusCode": 200,
-            "body": json.dumps({"message": "error args"})
-        }
+        validate_params(meta_books)
+    except Exception as e:
+        return {"statusCode": 200, "body": json.dumps({"message": e})}
     m1 = convert_str_to_minhash(digest_str)
     result = lsh.query(m1)
     if len(result) > 0:

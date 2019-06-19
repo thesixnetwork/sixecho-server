@@ -6,8 +6,8 @@ Create Date: 2019-06-10 18:09:40.540934
 
 """
 import sqlalchemy as sa
-from sqlalchemy.sql import func
 from alembic import op
+from sqlalchemy.sql import func
 
 # revision identifiers, used by Alembic.
 revision = '5b2fd0d9e3b5'
@@ -21,8 +21,15 @@ def upgrade():
         'categories',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False,server_default=func.now()),
+        sa.Column('key', sa.String(255), nullable=False),
+        sa.Column('created_at',
+                  sa.DateTime(timezone=True),
+                  nullable=False,
+                  server_default=func.now()),
+        sa.Column('updated_at',
+                  sa.DateTime(timezone=True),
+                  nullable=False,
+                  server_default=func.now()),
     )
 
 
