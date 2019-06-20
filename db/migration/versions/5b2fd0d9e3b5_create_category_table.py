@@ -21,7 +21,6 @@ def upgrade():
         'categories',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
-        sa.Column('key', sa.String(255), nullable=False),
         sa.Column('created_at',
                   sa.DateTime(timezone=True),
                   nullable=False,
@@ -30,7 +29,7 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
-        sa.Index("key_index", "key", unique=True),
+        sa.Index("name_index", "name", unique=True)
     )
 
 
