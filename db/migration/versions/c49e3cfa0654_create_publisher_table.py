@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade():
     op.create_table(
-        'publisher',
+        'publishers',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('first_name', sa.String(255), nullable=False),
         sa.Column('last_name', sa.String(255), nullable=False),
@@ -34,4 +34,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('publisher')
+    op.drop_table('publishers')
