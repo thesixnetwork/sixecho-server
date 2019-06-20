@@ -5,3 +5,6 @@ deploy:
 	aws cloudformation deploy --template-file ./packaged.yaml --stack-name sixechoAPIv100 --capabilities CAPABILITY_IAM --profile ${AWS_PROFILE}
 remove:
 	aws cloudformation delete-stack --stack-name sixechoAPIv100 --profile ${AWS_PROFILE}
+update:
+	cd digest_checker && zip -r ../myDeploymentPackage.zip .
+	aws lambda update-function-code --function-name sixechoAPIv100-DigestCheckerFunction-1LW2QBL2TF60Q --zip-file fileb://myDeploymentPackage.zip

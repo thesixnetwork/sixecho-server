@@ -72,7 +72,7 @@ doctrees
 # vcode
 .vscode
 
-sam/api/v1.0/digest_checker/**/*.*
+sam/api/v1.0/digest_checker/*
 sam/api/v1.0/*zip
 !__init__.py
 !app.py

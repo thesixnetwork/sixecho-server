@@ -24,7 +24,7 @@ DB_HOST = parameter["Parameter"]["Value"]
 DB_USER = parameter2["Parameter"]["Value"]
 DB_PASSWORD = parameter3["Parameter"]["Value"]
 
-URL_ENGINE = "mysql://%s:%s@%s/sixecho" % (DB_USER, DB_PASSWORD, DB_HOST)
+URL_ENGINE = "mysql+mysqlconnector://%s:%s@%s/sixecho" % (DB_USER, DB_PASSWORD, DB_HOST)
 ENGINE = create_engine(URL_ENGINE, echo=True)
 Session = sessionmaker(bind=ENGINE)
 
@@ -101,7 +101,7 @@ def check_publisher(publisher_id):
 
 def check_category(category_id):
     session = Session()
-    category = session.query(Category).filter_by(key=category_id).first()
+    category = session.query(Category).filter_by(id=category_id).first()
     if category is None:
         raise Exception("Category ID is not exist")
     session.close()
@@ -133,7 +133,7 @@ def lambda_handler(event, context):
         meta_books = body["meta_books"]
         validate_params(meta_books)
     except Exception as e:
-        return {"statusCode": 200, "body": json.dumps({"message": e})}
+        return {"statusCode": 200, "body": json.dumps({"message": e.message})}
     m1 = convert_str_to_minhash(digest_str)
     result = lsh.query(m1)
     if len(result) > 0:
