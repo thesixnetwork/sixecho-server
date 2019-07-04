@@ -1,51 +1,51 @@
 const Caver = require('caver-js')
-const caver = new Caver('HTTP://127.0.0.1:7545')
+const caver = new Caver('HTTP://127.0.0.1:8551')
 // enter your smart contract address
-const contractAddress = '0x69800b7Edb8776682f508FC612ae77e3914AB48D'
-const EchoApp = require('../build/contracts/EchoApp.json')
-// enter your smart contract address
-const echoApp = new caver.klay.Contract(EchoApp.abi, contractAddress)
-const events = echoApp.events
-console.log(events)
-events.allEvents(function(error, result) {
-  // result will contain various information
-  // including the argumets given to the `Deposit`
-  // call.
+const contractAddress = '0x063cb35c2ba39b7dc8cb3ffc148190fdaaeb28a6'
+const callerAddr = '0x9df799fed9eb39dfc1beb32bad4303d0990725f3'
+const APIv100 = require('../build/contracts/APIv100.json')
+const apiv100 = new caver.klay.Contract(APIv100.abi, contractAddress)
+const events = apiv100.events
 
-  if (error) {
-    console.log('error')
-    console.log(error)
-    console.log('asdf')
-  }
-  console.log(result)
-})
-echoApp.events
-  .allEvents({}, (error, event) => {
-    console.log(event)
+getBookById(1)
+  .then(console.log)
+  .catch(console.error)
+
+// addBook('AnimalFarm 2', '978-3-16-148410-1')
+//  .then(console.log)
+//  .catch(console.error)
+
+// addWriter('0xd87d72c191f3476640e943b1bc54067d96db1710')
+//   .then(console.log)
+//   .catch(console.error)
+
+function addBook(name, isbn) {
+  return new Promise((resolve, reject) => {
+    apiv100.methods
+      .addBook(name, isbn)
+      .send({ from: callerAddr, gas: 200000 }, (err, transactionHash) => {
+        if (err) {
+          return reject(err)
+        }
+        return resolve(transactionHash)
+      })
   })
-  .on('data', function(event) {
-    console.log(event) // same results as the optional callback above
+}
+
+function getBookById(id) {
+  return apiv100.methods.getBook(id).call()
+}
+
+function addWriter(addr) {
+  return new Promise((resolve, reject) => {
+    apiv100.methods
+      .addWriter(addr)
+      .send({ from: callerAddr, gas: 200000 }, (err, transactionHash) => {
+        if (err) {
+          return reject(err)
+        }
+        return resolve(transactionHash)
+      })
   })
-  .on('error', console.error)
-setTimeout(() => {
-  echoApp.methods
-    .initial()
-    .call()
-    .then(r => {
-      console.log(r)
-    })
-}, 1000)
-/*
-echoApp.getPastEvents(
-  'allEvents',
-  {
-    filter: {}, // Using an array means OR: e.g. 20 or 23
-    fromBlock: 0,
-    toBlock: 'latest'
-  },
-  function(error, events) {
-    console.log(error)
-    console.log(events)
-  }
-)
-*/
+}
+
