@@ -78,3 +78,5 @@ sam/api/v1.0/*zip
 !app.py
 !requirements.txt
 !**/sixecho_model/**
+contract/node_modules
+contract/build

@@ -1,0 +1,21 @@
+{
+  "name": "echo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "caver-js": "^0.9.4",
+    "diff": "^4.0.1",
+    "solc": "^0.4.24",
+    "truffle": "^4.1.15",
+    "web3": "^1.0.0-beta.55"
+  }
+}
