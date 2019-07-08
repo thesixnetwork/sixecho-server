@@ -1,4 +1,13 @@
 build:
+	pip install datasketch==1.4.3 --user
+	pip install mysql-connector-python==8.0.16 --user
+	pip install pycountry==18.12.8 --user
+	pip install SQLAlchemy==1.3.3 --user
+	pip install six==1.11.0 --user
+	curl -o ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl https://files.pythonhosted.org/packages/1f/c7/198496417c9c2f6226616cff7dedf2115a4f4d0276613bab842ec8ac1e23/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl 
+
+	pip install ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl -t ./digest_checker --upgrade
+	rm ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl
 deploy:
 	aws s3 cp swagger.yml s3://${BUCKET_NAME}/swagger.yml --profile ${AWS_PROFILE}
 	sam package --template-file tmp-template.yaml --s3-bucket ${BUCKET_NAME} --output-template-file packaged.yaml --profile ${AWS_PROFILE}

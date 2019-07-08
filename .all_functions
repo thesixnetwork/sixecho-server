@@ -1,0 +1,763 @@
+function __getExportByName()
+{
+    aws cloudformation list-exports --profile $2 | jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+function _deploy() {
+
+if [ ! -f template.yaml ]; then
+        echo "No template file found"
+        return
+fi
+
+STACK=$1
+AWSPROFILE=$2
+
+DELETE_STACK=$3
+if [ "${DELETE_STACK}" == "" ]; then
+    DELETE_STACK=0
+fi
+
+echo "Deploying Stack:${STACK} to ${AWSPROFILE}"
+
+SAMFILE=template
+BUCKETNAME=`__getExportByName S3::CodeDeploy ${AWSPROFILE}`
+# SWAGGERFILE=userapi-swagger.yml
+
+echo "Bucket name : ${BUCKETNAME}"
+
+if [ "${BUCKETNAME}" == "" ]; then 
+    echo "Bucket name is empty."
+    read
+    return
+fi
+
+if [ -f Makefile ]; then
+        echo "Making go file"
+        make build
+fi
+
+if [ $? -ne 0 ]; then
+    echo "ERROR Build failed."
+    read
+    return
+fi
+
+if [ "${DELETE_STACK}" == "1" ]; then
+    echo "Delete Stack : ${STACK}"
+    aws cloudformation delete-stack --stack-name ${STACK} --profile ${AWSPROFILE}
+    echo "Waiting for satck to be deleted"
+    aws cloudformation wait stack-delete-complete --stack-name ${STACK} --profile ${AWSPROFILE}
+fi
+
+if [ -f swagger.yml ]; then
+    aws s3 cp swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+if [ -f admin-swagger.yml ]; then
+    aws s3 cp admin-swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+if [ -f partner-swagger.yml ]; then
+    aws s3 cp partner-swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+cat ${SAMFILE}.yaml | sed "s/\[\[BUCKET_NAME\]\]/${BUCKETNAME}/g" > tmp-${SAMFILE}.yaml
+
+
+if [ -f .${AWSPROFILE}.env ]; then
+    . ./.${AWSPROFILE}.env
+    cat .${AWSPROFILE}.env | while read LINE 
+    do
+        KEY=`echo $LINE | cut -d'=' -f1`
+        VALUE=`echo $LINE | cut -d'=' -f2`
+        echo "Replacing ENV key : ${KEY} with value : ${VALUE}"
+        cp tmp-${SAMFILE}.yaml tmp-${SAMFILE}-env.yaml
+        cat tmp-${SAMFILE}-env.yaml | sed "s/\[\[${KEY}\]\]/${VALUE}/g" > tmp-${SAMFILE}.yaml
+    done
+fi
+
+if [ -f tmp-${SAMFILE}-env.yaml ]; then
+    rm tmp-${SAMFILE}-env.yaml
+fi
+
+sam package --template-file tmp-${SAMFILE}.yaml --s3-bucket ${BUCKETNAME} --output-template-file packaged.yaml --profile ${AWSPROFILE}
+aws cloudformation deploy --template-file ./packaged.yaml --stack-name ${STACK} --capabilities CAPABILITY_IAM --s3-bucket ${BUCKETNAME} --profile ${AWSPROFILE}
+
+#aws cloudformation list-exports --profile ${AWSPROFILE}
+}
+
+echo "Usage: _deploy <STACKNAME> <AWS PROFILE> [DELETE STACK]"
+function _diff_branches() {
+GITDIFFOPT=$1
+
+git remote prune origin
+git fetch --all
+
+git branch | while read branchName
+do
+        BRANCH=`echo "${branchName}" | sed "s/\*//g" | awk '{print $1}'`
+        echo "========================  $BRANCH  ========================"
+        git diff ${GITDIFFOPT} ${BRANCH} origin/${BRANCH}
+done
+}
+echo "Usage: _diff_branches --name-only"
+function _diff_param() {
+PROFILE1=$1
+PROFILE2=$2
+
+aws ssm get-parameters-by-path --path / --output text --profile ${PROFILE1} | grep PARAMETERS | awk '{print $2}' | sort > /tmp/param1.txt
+aws ssm get-parameters-by-path --path / --output text --profile ${PROFILE2} | grep PARAMETERS | awk '{print $2}' | sort > /tmp/param2.txt
+
+diff /tmp/param1.txt /tmp/param2.txt
+}
+
+echo "Usage: _diff_param <PROFILE1> <PROFILE2>"
+function _exportAdminCognitoENV()
+{
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile ${AWSPROFILE}| jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+AWSPROFILE=$1
+
+USER_POOL_ID=`_getExportByName AdminCognitoUserPool`
+APP_CLIENT_ID=`_getExportByName AdminCognitoUserPoolClient`
+IDENTITY_POOL_ID=`_getExportByName AdminCognitoIdPool`
+
+
+echo -e " {\"REGION\": \"ap-southeast-1\",\"USER_POOL_ID\": \"${USER_POOL_ID}\",\"APP_CLIENT_ID\": \"${APP_CLIENT_ID}\",\"IDENTITY_POOL_ID\": \"${IDENTITY_POOL_ID}\"}" | jq '.'
+}
+echo "Usage: _exportAdminCognitoENV <AWS PROFILE>"
+
+function _exportCognitoENV()
+{
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile ${AWSPROFILE}| jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+AWSPROFILE=$1
+
+USER_POOL_ID=`_getExportByName CognitoUserPool`
+APP_CLIENT_ID=`_getExportByName CognitoUserPoolClient`
+IDENTITY_POOL_ID=`_getExportByName CognitoIdPool`
+
+
+echo -e " {\"REGION\": \"ap-southeast-1\",\"USER_POOL_ID\": \"${USER_POOL_ID}\",\"APP_CLIENT_ID\": \"${APP_CLIENT_ID}\",\"IDENTITY_POOL_ID\": \"${IDENTITY_POOL_ID}\"}" | jq '.'
+}
+echo "Usage: _exportCognitoENV <AWS PROFILE>"
+
+#!/bin/ksh
+
+function _export_log
+{
+
+KEYWORD=$1
+AWSPROFILE=$2
+FIRSTITEM=$3
+OUTPUTFILE=$4
+
+index=0
+
+if [ -f /tmp/FUNCTIONS.txt ]; then 
+    rm /tmp/FUNCTIONS.txt
+fi
+
+if [ -f /tmp/STREAMS.txt ]; then 
+    rm /tmp/STREAMS.txt
+fi
+
+unset GREP_OPTIONS
+
+aws lambda list-functions --profile ${AWSPROFILE} | grep FunctionArn | grep -i $KEYWORD | awk -F ":" '{print $NF}' | awk -F "\"" '{print $1}'| while read LINE
+do
+    index=`expr $index + 1`
+    # echo $LINE
+    echo "FUNCTIONS[$index]=$LINE" >> /tmp/FUNCTIONS.txt
+
+done
+
+. /tmp/FUNCTIONS.txt
+
+count=${#FUNCTIONS[@]}
+
+if [ "$count" ==  "0" ]; then
+    echo "No function found."
+    exit 0
+fi
+clear
+echo "Found $count function(s)"
+echo
+
+# for j in {1..$count}
+for ((j=1;j<=$count;j++)); 
+do
+    echo "${j}. ${FUNCTIONS[$j]}"
+done
+echo
+fnchoice=0
+if [ "$count" ==  "1" ]; then
+    fnchoice=1
+else
+    echo -e "Choose your function :\c"
+    read fnchoice
+fi
+
+echo "Chosen ${FUNCTIONS[${fnchoice}]}"
+
+CHOSENFUNCTION=${FUNCTIONS[${fnchoice}]}
+
+index=0
+
+aws logs describe-log-streams --log-group-name /aws/lambda/${CHOSENFUNCTION} --descending --order-by LastEventTime --max-items 3 --profile ${AWSPROFILE} | jq '.logStreams[] | .logStreamName' | while read LINE
+do
+    index=`expr $index + 1`
+    echo "STREAMS[$index]=$LINE" | sed "s/\"/'/g" >> /tmp/STREAMS.txt
+done
+
+. /tmp/STREAMS.txt
+
+count=${#STREAMS[@]}
+clear
+# for j in {1..$count}
+for ((j=1;j<=$count;j++)); 
+do
+    echo "${j}. ${STREAMS[$j]}"
+done
+echo
+if [ "${FIRSTITEM}" == "1" ]; then
+    streamchoice=1
+else
+    echo -e "Choose your logstream (descending by time) :\c"
+    read streamchoice
+fi
+
+echo "Chosen ${STREAMS[${streamchoice}]}"
+
+CHOSENSTREAM=${STREAMS[${streamchoice}]}
+echo
+if [ "${OUTPUTFILE}" != "" ]; then
+    filename=${OUTPUTFILE}
+else
+    echo -e "Filename to write a log to (overwrite):  \c"
+    read filename
+fi
+
+if [ -f ${filename} ]; then
+    echo -e "File exits , 'Y' to delete : \c"
+    read delete
+    if [ "$delete" == "Y" ]; then
+        rm $filename
+    else
+        echo "Abort"
+        exit 0
+    fi
+fi
+
+aws logs get-log-events --log-group-name /aws/lambda/${CHOSENFUNCTION} --log-stream-name ${CHOSENSTREAM} --profile ${AWSPROFILE} | jq '.events[] | .message' | while read LINE
+do
+    echo $LINE >> ${filename}
+done
+vi ${filename}
+}
+echo "Usage: _export_log <KEYWORD> <AWS PROFILE>"
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile $2 | jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+echo "Usage: _getExportByName S3::CodeDeploy dev"
+function _listAPI()
+{
+AWSPROFILE=$1
+
+unset GREP_OPTIONS
+aws apigateway get-rest-apis --profile ${AWSPROFILE} | grep "id" | awk -F ":" '{print $2}' | awk -F "\"" '{print $2}' | while read LINE
+do
+        #echo $LINE
+
+        aws apigateway get-rest-api --rest-api-id $LINE --profile ${AWSPROFILE} | grep "name"
+        echo -e "\tend point : https://${LINE}.execute-api.ap-southeast-1.amazonaws.com/prod\n"
+done
+}
+echo "Usage: _listAPI <AWS PROFILE>"
+function _redep() {
+
+echo -e "Rerunning Dep Init for go : (enter to continue)\c"
+read
+
+if ! [ -f ./Gopkg.lock ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+if ! [ -f ./Gopkg.toml ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+if ! [ -d ./vendor ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+rm -Rf ./vendor
+rm ./Gopkg.lock
+rm ./Gopkg.toml
+
+dep init
+dep ensure
+
+}
+echo "Usage: _redep"
+function _getFunctionByName
+{
+        aws lambda list-functions --profile ${AWSPROFILE} | jq -r ".Functions | .[] | select( .FunctionName  == \"$1\" )"
+}
+
+function _searchFunction() {
+KEYWORD=$1
+AWSPROFILE=$2
+
+unset GREP_OPTIONS
+
+aws lambda list-functions --profile ${AWSPROFILE} | grep FunctionArn | grep -i $KEYWORD | awk -F ":" '{print $NF}' | awk -F "\"" '{print $1}'| while read LINE
+do
+        _getFunctionByName $LINE
+done
+}
+echo "Usage: _searchFunction <KEYWORK> <AWS PROFILE>"
+function _updateFunction() {
+
+LAMBDA=$1
+FOLDER=$2
+AWSPROFILE=$3
+
+if ! [ -d ${FOLDER} ]; then
+    echo "Folder holding the function does not exists"
+    return 1
+fi
+
+if ! [ -f ${FOLDER}/main.go ]; then
+    echo "It seems that it's not a go function"
+    return 1
+fi
+
+echo "Clean files."
+rm -rf ./${FOLDER}/${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error cleaning file."
+    return 2;
+fi
+
+echo "Building GO."
+GOOS=linux GOARCH=amd64 go build -o ${FOLDER}/${FOLDER} ./${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error compiling GO"
+    return 2;
+fi
+
+echo "Compressing"
+#zip ${FOLDER}.zip ./${FOLDER}/${FOLDER} ${FOLDER}/main.go ${FOLDER}/main_test.go
+build-lambda-zip -o ${FOLDER}.zip ./${FOLDER}/${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error packing zip file"
+    return 2;
+fi
+
+echo "Update lambda function"
+
+aws lambda update-function-code --function-name ${LAMBDA} --zip-file fileb://${FOLDER}.zip --profile ${AWSPROFILE}
+if [ $? -ne 0 ]; then   
+    echo "Error uploading Function"
+    return 2;
+fi
+
+}
+echo "Usage: _updateFunction <AWS LAMDA FUNCTION> <FOLDER> <AWS PROFILE>"
+function __getExportByName()
+{
+    aws cloudformation list-exports --profile $2 | jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+function _deploy() {
+
+if [ ! -f template.yaml ]; then
+        echo "No template file found"
+        return
+fi
+
+STACK=$1
+AWSPROFILE=$2
+
+DELETE_STACK=$3
+if [ "${DELETE_STACK}" == "" ]; then
+    DELETE_STACK=0
+fi
+
+echo "Deploying Stack:${STACK} to ${AWSPROFILE}"
+
+SAMFILE=template
+BUCKETNAME=`__getExportByName S3::CodeDeploy ${AWSPROFILE}`
+# SWAGGERFILE=userapi-swagger.yml
+
+echo "Bucket name : ${BUCKETNAME}"
+
+if [ "${BUCKETNAME}" == "" ]; then 
+    echo "Bucket name is empty."
+    read
+    return
+fi
+
+if [ -f Makefile ]; then
+        echo "Making go file"
+        make build
+fi
+
+if [ $? -ne 0 ]; then
+    echo "ERROR Build failed."
+    read
+    return
+fi
+
+if [ "${DELETE_STACK}" == "1" ]; then
+    echo "Delete Stack : ${STACK}"
+    aws cloudformation delete-stack --stack-name ${STACK} --profile ${AWSPROFILE}
+    echo "Waiting for satck to be deleted"
+    aws cloudformation wait stack-delete-complete --stack-name ${STACK} --profile ${AWSPROFILE}
+fi
+
+if [ -f swagger.yml ]; then
+    aws s3 cp swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+if [ -f admin-swagger.yml ]; then
+    aws s3 cp admin-swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+if [ -f partner-swagger.yml ]; then
+    aws s3 cp partner-swagger.yml s3://${BUCKETNAME}/ --profile ${AWSPROFILE}
+fi
+
+cat ${SAMFILE}.yaml | sed "s/\[\[BUCKET_NAME\]\]/${BUCKETNAME}/g" > tmp-${SAMFILE}.yaml
+
+
+if [ -f .${AWSPROFILE}.env ]; then
+    . ./.${AWSPROFILE}.env
+    cat .${AWSPROFILE}.env | while read LINE 
+    do
+        KEY=`echo $LINE | cut -d'=' -f1`
+        VALUE=`echo $LINE | cut -d'=' -f2`
+        echo "Replacing ENV key : ${KEY} with value : ${VALUE}"
+        cp tmp-${SAMFILE}.yaml tmp-${SAMFILE}-env.yaml
+        cat tmp-${SAMFILE}-env.yaml | sed "s/\[\[${KEY}\]\]/${VALUE}/g" > tmp-${SAMFILE}.yaml
+    done
+fi
+
+if [ -f tmp-${SAMFILE}-env.yaml ]; then
+    rm tmp-${SAMFILE}-env.yaml
+fi
+
+sam package --template-file tmp-${SAMFILE}.yaml --s3-bucket ${BUCKETNAME} --output-template-file packaged.yaml --profile ${AWSPROFILE}
+aws cloudformation deploy --template-file ./packaged.yaml --stack-name ${STACK} --capabilities CAPABILITY_IAM --s3-bucket ${BUCKETNAME} --profile ${AWSPROFILE}
+
+#aws cloudformation list-exports --profile ${AWSPROFILE}
+}
+
+echo "Usage: _deploy <STACKNAME> <AWS PROFILE> [DELETE STACK]"
+function _diff_branches() {
+GITDIFFOPT=$1
+
+git remote prune origin
+git fetch --all
+
+git branch | while read branchName
+do
+        BRANCH=`echo "${branchName}" | sed "s/\*//g" | awk '{print $1}'`
+        echo "========================  $BRANCH  ========================"
+        git diff ${GITDIFFOPT} ${BRANCH} origin/${BRANCH}
+done
+}
+echo "Usage: _diff_branches --name-only"
+function _diff_param() {
+PROFILE1=$1
+PROFILE2=$2
+
+aws ssm get-parameters-by-path --path / --output text --profile ${PROFILE1} | grep PARAMETERS | awk '{print $2}' | sort > /tmp/param1.txt
+aws ssm get-parameters-by-path --path / --output text --profile ${PROFILE2} | grep PARAMETERS | awk '{print $2}' | sort > /tmp/param2.txt
+
+diff /tmp/param1.txt /tmp/param2.txt
+}
+
+echo "Usage: _diff_param <PROFILE1> <PROFILE2>"
+function _exportAdminCognitoENV()
+{
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile ${AWSPROFILE}| jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+AWSPROFILE=$1
+
+USER_POOL_ID=`_getExportByName AdminCognitoUserPool`
+APP_CLIENT_ID=`_getExportByName AdminCognitoUserPoolClient`
+IDENTITY_POOL_ID=`_getExportByName AdminCognitoIdPool`
+
+
+echo -e " {\"REGION\": \"ap-southeast-1\",\"USER_POOL_ID\": \"${USER_POOL_ID}\",\"APP_CLIENT_ID\": \"${APP_CLIENT_ID}\",\"IDENTITY_POOL_ID\": \"${IDENTITY_POOL_ID}\"}" | jq '.'
+}
+echo "Usage: _exportAdminCognitoENV <AWS PROFILE>"
+
+function _exportCognitoENV()
+{
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile ${AWSPROFILE}| jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+
+AWSPROFILE=$1
+
+USER_POOL_ID=`_getExportByName CognitoUserPool`
+APP_CLIENT_ID=`_getExportByName CognitoUserPoolClient`
+IDENTITY_POOL_ID=`_getExportByName CognitoIdPool`
+
+
+echo -e " {\"REGION\": \"ap-southeast-1\",\"USER_POOL_ID\": \"${USER_POOL_ID}\",\"APP_CLIENT_ID\": \"${APP_CLIENT_ID}\",\"IDENTITY_POOL_ID\": \"${IDENTITY_POOL_ID}\"}" | jq '.'
+}
+echo "Usage: _exportCognitoENV <AWS PROFILE>"
+
+#!/bin/ksh
+
+function _export_log
+{
+
+KEYWORD=$1
+AWSPROFILE=$2
+FIRSTITEM=$3
+OUTPUTFILE=$4
+
+index=0
+
+if [ -f /tmp/FUNCTIONS.txt ]; then 
+    rm /tmp/FUNCTIONS.txt
+fi
+
+if [ -f /tmp/STREAMS.txt ]; then 
+    rm /tmp/STREAMS.txt
+fi
+
+unset GREP_OPTIONS
+
+aws lambda list-functions --profile ${AWSPROFILE} | grep FunctionArn | grep -i $KEYWORD | awk -F ":" '{print $NF}' | awk -F "\"" '{print $1}'| while read LINE
+do
+    index=`expr $index + 1`
+    # echo $LINE
+    echo "FUNCTIONS[$index]=$LINE" >> /tmp/FUNCTIONS.txt
+
+done
+
+. /tmp/FUNCTIONS.txt
+
+count=${#FUNCTIONS[@]}
+
+if [ "$count" ==  "0" ]; then
+    echo "No function found."
+    exit 0
+fi
+clear
+echo "Found $count function(s)"
+echo
+
+# for j in {1..$count}
+for ((j=1;j<=$count;j++)); 
+do
+    echo "${j}. ${FUNCTIONS[$j]}"
+done
+echo
+fnchoice=0
+if [ "$count" ==  "1" ]; then
+    fnchoice=1
+else
+    echo -e "Choose your function :\c"
+    read fnchoice
+fi
+
+echo "Chosen ${FUNCTIONS[${fnchoice}]}"
+
+CHOSENFUNCTION=${FUNCTIONS[${fnchoice}]}
+
+index=0
+
+aws logs describe-log-streams --log-group-name /aws/lambda/${CHOSENFUNCTION} --descending --order-by LastEventTime --max-items 3 --profile ${AWSPROFILE} | jq '.logStreams[] | .logStreamName' | while read LINE
+do
+    index=`expr $index + 1`
+    echo "STREAMS[$index]=$LINE" | sed "s/\"/'/g" >> /tmp/STREAMS.txt
+done
+
+. /tmp/STREAMS.txt
+
+count=${#STREAMS[@]}
+clear
+# for j in {1..$count}
+for ((j=1;j<=$count;j++)); 
+do
+    echo "${j}. ${STREAMS[$j]}"
+done
+echo
+if [ "${FIRSTITEM}" == "1" ]; then
+    streamchoice=1
+else
+    echo -e "Choose your logstream (descending by time) :\c"
+    read streamchoice
+fi
+
+echo "Chosen ${STREAMS[${streamchoice}]}"
+
+CHOSENSTREAM=${STREAMS[${streamchoice}]}
+echo
+if [ "${OUTPUTFILE}" != "" ]; then
+    filename=${OUTPUTFILE}
+else
+    echo -e "Filename to write a log to (overwrite):  \c"
+    read filename
+fi
+
+if [ -f ${filename} ]; then
+    echo -e "File exits , 'Y' to delete : \c"
+    read delete
+    if [ "$delete" == "Y" ]; then
+        rm $filename
+    else
+        echo "Abort"
+        exit 0
+    fi
+fi
+
+aws logs get-log-events --log-group-name /aws/lambda/${CHOSENFUNCTION} --log-stream-name ${CHOSENSTREAM} --profile ${AWSPROFILE} | jq '.events[] | .message' | while read LINE
+do
+    echo $LINE >> ${filename}
+done
+vi ${filename}
+}
+echo "Usage: _export_log <KEYWORD> <AWS PROFILE>"
+function _getExportByName()
+{
+    aws cloudformation list-exports --profile $2 | jq -r ".Exports | .[] |  if .Name == \"$1\" then .Value else \"{nil}\" end" | grep -v "{nil}"
+}
+echo "Usage: _getExportByName S3::CodeDeploy dev"
+function _listAPI()
+{
+AWSPROFILE=$1
+
+unset GREP_OPTIONS
+aws apigateway get-rest-apis --profile ${AWSPROFILE} | grep "id" | awk -F ":" '{print $2}' | awk -F "\"" '{print $2}' | while read LINE
+do
+        #echo $LINE
+
+        aws apigateway get-rest-api --rest-api-id $LINE --profile ${AWSPROFILE} | grep "name"
+        echo -e "\tend point : https://${LINE}.execute-api.ap-southeast-1.amazonaws.com/prod\n"
+done
+}
+echo "Usage: _listAPI <AWS PROFILE>"
+function _redep() {
+
+echo -e "Rerunning Dep Init for go : (enter to continue)\c"
+read
+
+if ! [ -f ./Gopkg.lock ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+if ! [ -f ./Gopkg.toml ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+if ! [ -d ./vendor ]; then
+        echo "Go Dep is not applied yet"
+        return
+fi
+
+rm -Rf ./vendor
+rm ./Gopkg.lock
+rm ./Gopkg.toml
+
+dep init
+dep ensure
+
+}
+echo "Usage: _redep"
+function _getFunctionByName
+{
+        aws lambda list-functions --profile ${AWSPROFILE} | jq -r ".Functions | .[] | select( .FunctionName  == \"$1\" )"
+}
+
+function _searchFunction() {
+KEYWORD=$1
+AWSPROFILE=$2
+
+unset GREP_OPTIONS
+
+aws lambda list-functions --profile ${AWSPROFILE} | grep FunctionArn | grep -i $KEYWORD | awk -F ":" '{print $NF}' | awk -F "\"" '{print $1}'| while read LINE
+do
+        _getFunctionByName $LINE
+done
+}
+echo "Usage: _searchFunction <KEYWORK> <AWS PROFILE>"
+function _updateFunction() {
+
+LAMBDA=$1
+FOLDER=$2
+AWSPROFILE=$3
+
+if ! [ -d ${FOLDER} ]; then
+    echo "Folder holding the function does not exists"
+    return 1
+fi
+
+if ! [ -f ${FOLDER}/main.go ]; then
+    echo "It seems that it's not a go function"
+    return 1
+fi
+
+echo "Clean files."
+rm -rf ./${FOLDER}/${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error cleaning file."
+    return 2;
+fi
+
+echo "Building GO."
+GOOS=linux GOARCH=amd64 go build -o ${FOLDER}/${FOLDER} ./${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error compiling GO"
+    return 2;
+fi
+
+echo "Compressing"
+#zip ${FOLDER}.zip ./${FOLDER}/${FOLDER} ${FOLDER}/main.go ${FOLDER}/main_test.go
+build-lambda-zip -o ${FOLDER}.zip ./${FOLDER}/${FOLDER}
+
+if [ $? -ne 0 ]; then   
+    echo "Error packing zip file"
+    return 2;
+fi
+
+echo "Update lambda function"
+
+aws lambda update-function-code --function-name ${LAMBDA} --zip-file fileb://${FOLDER}.zip --profile ${AWSPROFILE}
+if [ $? -ne 0 ]; then   
+    echo "Error uploading Function"
+    return 2;
+fi
+
+}
+echo "Usage: _updateFunction <AWS LAMDA FUNCTION> <FOLDER> <AWS PROFILE>"
+
