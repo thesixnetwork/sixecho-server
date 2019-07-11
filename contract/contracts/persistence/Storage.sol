@@ -4,43 +4,50 @@ import "../security/AccessRestriction.sol";
 
 contract Storage is AccessRestriction {
 
-    uint256 key = 0;
+    address _appAddress;
 
-    mapping(uint256 => mapping(string => string)) internal stringAttributes; // use to private
-    mapping(uint256 => mapping(string => uint256)) private uintAttributes;
-    mapping(uint256 => mapping(string => address)) private addressAttributes;
-    mapping(uint256 => mapping(string => bool)) private boolAttributes;
+    mapping(address => bool) internal writers;
 
-    /*
-    constructor(address appAddress) internal {
-        writers[msg.sender] = true;
+    mapping(string => mapping(string => string)) private stringAttributes;
+    mapping(string => mapping(string => uint256)) private uintAttributes;
+    mapping(string => mapping(string => address)) private addressAttributes;
+    mapping(string => mapping(string => bool)) private boolAttributes;
+
+    
+    constructor(address appAddress) public  {
+        _owner = msg.sender;
+        _appAddress = appAddress;
+        writers[_owner] = true;
         writers[appAddress] = true;
-    }
-    */
+    } 
 
-    function addWriter(address newWriter) public onlyOwner {
+    function addWriter(address newWriter) public oneOfTwo(_owner,_appAddress) {
         writers[newWriter] = true;
     }
 
-
-    function totalKey() public view returns (uint256) {
-        return key;
+    modifier onlyWriter()
+    {
+        require(
+            writers[msg.sender] == true,
+            "Sender not authorized to write storage."
+        );
+        // Do not forget the "_;"! It will
+        // be replaced by the actual function
+        // body when the modifier is used.
+        _;
     }
 
-    function getNewKey() internal returns (uint256) {
-        key++;
-        return key;
+    // function getNewKey() public returns (string) {
+    //     _key = _key + 1;
+    //     string newKey = string(_key);
+    //     return newKey;
+    // }
+
+    function setString(string key,string attriName,string value) public onlyWriter {
+        stringAttributes[key][attriName] = value;
     }
 
-    function setString(uint256 _key,string _attriName,string _value) internal onlyWriter {
-        stringAttributes[_key][_attriName] = _value;
-    }
-
-    function getString(uint256 _key,string _attriName) public view returns (string) {
-        return stringAttributes[_key][_attriName];
-    }
-
-    function _toBytes(uint256 x) private pure returns (bytes32) {
-        return bytes32(x);
+    function getString(string key,string attriName) public view returns (string) {
+        return stringAttributes[key][attriName];
     }
 }

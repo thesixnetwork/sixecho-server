@@ -14,6 +14,9 @@
   "dependencies": {
     "caver-js": "^0.9.4",
     "diff": "^4.0.1",
+    "fs": "0.0.1-security",
+    "minimist": "^1.2.0",
+    "properties-reader": "^0.2.0",
     "solc": "^0.4.24",
     "truffle": "^4.1.15",
     "web3": "^1.0.0-beta.55"

@@ -1,29 +1,32 @@
 pragma solidity ^0.4.24;
 
 import "../persistence/Storage.sol";
+import "../security/AccessRestriction.sol";
+import "../common/Event.sol";
 
-contract MetaDataController is Storage {
+contract MetaDataController is AccessRestriction,Event{
 
-    /*
-    constructor(address storageAddress) {
+    Storage _storage;
+
+    constructor (address storageAddress) public{
         _owner = msg.sender;
         _storage = Storage(storageAddress);
     }
-    */
 
-    function addNewBook(string _name, string _isbn) internal returns(uint256) {
+    function addBook(string newKey,string name,string isbn) public returns(string returnKey) {
         // Validate data
-        uint256 newKey = getNewKey();
-        setString(newKey, "name", _name);
-        setString(newKey, "isbn", _isbn);
-        return newKey;
+        // newKey = _storage.getNewKey();
+        returnKey = newKey;
+        emit OutputString("name",name);
+        emit OutputString("isbn",isbn);
+        _storage.setString(newKey,"name",name);
+        _storage.setString(newKey,"isbn",isbn);
+        return returnKey;
     }
 
-    function getBookByKey(uint256 _key) internal view returns(string,string) {
-        return (
-          getString(_key, "name"),
-          getString(_key,"isbn")
-        );
+    function getBookByKey(string key) public view returns(string name,string isbn) {
+         name = _storage.getString(key,"name");
+         isbn = _storage.getString(key,"isbn");
     }
 
 }

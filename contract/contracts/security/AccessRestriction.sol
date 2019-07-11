@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 contract AccessRestriction {
 
-    address private _owner;
+    address internal _owner;
     mapping(address => bool) internal writers;
 
     constructor() internal {
