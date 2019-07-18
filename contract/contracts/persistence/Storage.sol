@@ -13,6 +13,9 @@ contract Storage is AccessRestriction {
     mapping(string => mapping(string => address)) private addressAttributes;
     mapping(string => mapping(string => bool)) private boolAttributes;
 
+
+    mapping(string => mapping(string => uint256[])) private uintArrayAttributes;
+
     
     constructor(address appAddress) public  {
         _owner = msg.sender;
@@ -49,5 +52,37 @@ contract Storage is AccessRestriction {
 
     function getString(string key,string attriName) public view returns (string) {
         return stringAttributes[key][attriName];
+    }
+
+    function setUint(string key,string attriName,uint256 value) public onlyWriter {
+        uintAttributes[key][attriName] = value;
+    }
+
+    function getUint(string key,string attriName) public view returns (uint256) {
+        return uintAttributes[key][attriName];
+    }
+
+    function setBool(string key,string attriName,bool value) public onlyWriter {
+        boolAttributes[key][attriName] = value;
+    }
+
+    function getBool(string key,string attriName) public view returns (bool) {
+        return boolAttributes[key][attriName];
+    }
+
+    function setAddress(string key,string attriName,address value) public onlyWriter {
+        addressAttributes[key][attriName] = value;
+    }
+
+    function getAddress(string key,string attriName) public view returns (address) {
+        return addressAttributes[key][attriName];
+    }
+
+    function setUintArray(string key,string attriName,uint256[] value) public onlyWriter {
+        uintArrayAttributes[key][attriName] = value;
+    }
+
+    function getUintArray(string key,string attriName) public view returns (uint256[]) {
+        return uintArrayAttributes[key][attriName];
     }
 }

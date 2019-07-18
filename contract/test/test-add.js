@@ -44,12 +44,28 @@ async function start() {
         const apiBuild = require('../build/contracts/'+apiName+'.json')
         const apiInst = new web3.eth.Contract(apiBuild.abi, curApiAddress)
 
-        // await addBook(apiInst,"000002","Book2","123456789")
+        var randomDigest = [];
+        for ( i=0;i<=128; i++){
+          randomDigest.push(Math.floor(Math.random()*1000));
+        }
+
+        // await addBook(apiInst,"000004","Book4","Bank4","THA","th",100,"1",1563362788)
         //   .then(console.log)
-        //   .catch(console.error)
-        await getBookById(apiInst,"000002")
+        //   .catch(console.error);
+
+        // console.log(randomDigest);
+        
+        // await uploadDigest(apiInst,"000003",randomDigest)
+        //   .then(console.log)
+        //   .catch(console.error);
+
+        await getBookById(apiInst,"000004")
         .then(console.log)
         .catch(console.error)
+
+        // // await downloadDigest(apiInst,"000001")
+        // .then(console.log)
+        // .catch(console.error)
 
         return
     }
@@ -63,11 +79,31 @@ async function start() {
 start()
 
 
-function addBook(inst,key,name, isbn) {
+function addBook(inst,key,title,author,origin,lang,paperback,publisherId,publishDate) {
   return new Promise((resolve, reject) => {
     inst.methods
-      .addBook(key,name, isbn)
-      .send({ from: callerAddr }, (err, transactionHash) => {
+      .addBook(key,
+        title,
+        author,
+        origin,
+        lang,
+        paperback,
+        publisherId,publishDate)
+      .send({ from: callerAddr ,gasLimit: "10000000"}, (err, transactionHash) => {
+        if (err) {
+          return reject(err)
+        }
+        return resolve(transactionHash)
+      })
+  })
+}
+
+function uploadDigest(inst,key,digest) {
+  return new Promise((resolve, reject) => {
+    inst.methods
+      .uploadDigest(key,
+        digest)
+      .send({ from: callerAddr ,gasLimit: "10000000"}, (err, transactionHash) => {
         if (err) {
           return reject(err)
         }
@@ -78,4 +114,8 @@ function addBook(inst,key,name, isbn) {
 
 function getBookById(inst,id) {
   return inst.methods.getBook(id).call()
+}
+
+function downloadDigest(inst,id) {
+  return inst.methods.downloadDigest(id).call()
 }

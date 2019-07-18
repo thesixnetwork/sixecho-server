@@ -27,19 +27,43 @@ contract APIv100 is API ,AccessRestriction,Event {
         return _version;
     }
 
-    function addBook(string newKey,string name,string isbn) public onlyBy(_owner) returns(string key) {
-        key = _metaDataController.addBook(newKey,name,isbn);
+    function addBook(string newKey,
+                string title,
+                string author,
+                string origin,
+                string lang,
+                uint256 paperback,
+                string publisherId,
+                uint256 publishDate
+                ) public onlyBy(_owner) returns(string) {
+        string memory returnKey;
+        returnKey = _metaDataController.addBook(newKey,title,author,origin,lang,paperback,publisherId,publishDate);
         // emit OutputBytes32("returnKey",key);
-        return key;
+
+        return returnKey;
     }
 
-    function getBook(string key) public view returns (string,string) {
+    function uploadDigest(string newKey,uint256[] digest) public onlyBy(_owner) returns(string) {
+        string memory returnKey;
+        returnKey = _metaDataController.uploadDigest(newKey,digest);
+        return returnKey;
+    }
+
+    function downloadDigest(string newKey) public view returns (uint256[] digest) {
+        digest = _metaDataController.downloadDigest(newKey);
+    }
+
+    function getBook(string key) public view returns (string,string,string,string,uint256) {
         
-        string memory name;
-        string memory isbn;
+        string memory title;
+        string memory author;
+        string memory lang;
+        string memory publisherId;
+        uint256 publishDate;
+        
 
-        (name,isbn) = _metaDataController.getBookByKey(key);
+        (title,author,lang,publisherId,publishDate) = _metaDataController.getBookByKey(key);
 
-         return (name,isbn);
+         return (title,author,lang,publisherId,publishDate);
     }
 }
