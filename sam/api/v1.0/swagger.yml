@@ -20,6 +20,7 @@ paths:
               type: string
       security:
       - api_key: []
+      - api_sign: []
       x-amazon-apigateway-integration:
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
@@ -108,6 +109,10 @@ securityDefinitions:
   api_key:
     type: apiKey
     name: x-api-key
+    in: header
+  api_sign:
+    type: apiKey
+    name: x-api-sign
     in: header
 x-amazon-apigateway-gateway-responses:
   DEFAULT_4XX:

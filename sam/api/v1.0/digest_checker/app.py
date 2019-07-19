@@ -13,6 +13,8 @@ from sqlalchemy.orm import sessionmaker
 
 from sixecho_model.category import Category
 from sixecho_model.publisher import Publisher
+import hmac
+import hashlib
 
 ssm = boto3.client('ssm')
 
@@ -77,6 +79,35 @@ def insert_mysql(api_key_id=None,
     mydb.commit()
     mycursor.close()
 
+def get_API_Secret(api_key):
+    # import module
+    import mysql.connector
+    # import errorcode
+    from mysql.connector import errorcode
+    try:
+        mydb = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            passwd=DB_PASSWORD,
+            database="sixecho")
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print('Invalid credential. Unable to access database.')
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print('Database does not exists')
+        else:
+            print('Failed to connect to database')
+    mycursor = mydb.cursor()
+
+    sql = "SELECT API_Secret FROM partners WHERE API_Key = '" + api_key + "'"
+    mycursor.execute(sql)
+    myresult = [x[0] for x in mycursor.fetchall()]
+    # secret = myresult[0]
+    # close cursor
+    mycursor.close()
+    # close connection
+    mydb.close()
+    return myresult  # not using
 
 def validate_params(meta_books):
     language = meta_books["language"]
@@ -106,50 +137,85 @@ def check_category(category_id):
         raise Exception("Category ID is not exist")
     session.close()
 
+def sorted_toString(unsorted_dict):
+    s = ''
+    for key, value in sorted(unsorted_dict.items()):
+        s = s + str(key) + str(value)
+    return s
+    # sortednames = sorted(unsorted_dict.keys(), key=lambda x: x.lower())
+    # print(sortednames)
+    # sorted_dict = {}
+    # for i in sortednames:
+    #     sorted_dict[i] = str(unsorted_dict[i])
+    # return str(sorted_dict)
+
+
+def create_sha256_signature(secret, message):
+    secret = str(secret)
+    message = str(message)
+    secret_byte = str(secret).encode('utf-8')
+    message_byte = str(message).encode('utf-8')
+    signature = hmac.new(secret_byte, message_byte, hashlib.sha256).hexdigest()
+    return signature
 
 def lambda_handler(event, context):
-    host, redis_url, port = os.environ["REDIS_URL"].split(":")
-    redis_url = redis_url.replace("//", "")
-    print({'host': redis_url, 'port': port})
-    lsh = MinHashLSH(
-        storage_config={
-            'type': 'redis',
-            'redis': {
-                'host': redis_url,
-                'port': port
-            },
-            'basename': b'digital_checker',
-        })
-    uid = uuid.uuid4().hex
+    api_key = event["context"]["api-key"]
+    sign = event["params"]["header"]["x-api-sign"]
+    api_secret = get_API_Secret(api_key)[0]
     body = event["body-json"]
-    api_key_id = event["context"]["api-key-id"]
-    try:
-        for field in ["digest", "sha256", "size_file", "meta_books"]:
-            if field not in body.keys():
-                raise Exception("require %s argument." % field)
-        digest_str = body["digest"]
-        sha256 = body["sha256"]
-        size_file = body["size_file"]
-        meta_books = body["meta_books"]
-        validate_params(meta_books)
-    except Exception as e:
-        return {"statusCode": 200, "body": json.dumps({"message": e.message})}
-    m1 = convert_str_to_minhash(digest_str)
-    result = lsh.query(m1)
-    if len(result) > 0:
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Duplicate",
-            }),
-        }
-    else:
-        insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
-                     meta_books)
-        lsh.insert(key=uid, minhash=m1)
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "message": "Ok",
-            }),
-        }
+    for field in ["meta_books"]:
+        if field not in body.keys():
+            raise Exception("require %s argument." % field)
+    meta_books = body["meta_books"]
+    unsorted_dict = meta_books[0]
+    sorted_dict = sorted_toString(unsorted_dict)
+    signature = create_sha256_signature(str(api_secret), str(sorted_dict))
+    if(signature == sign):
+        host, redis_url, port = os.environ["REDIS_URL"].split(":")
+        redis_url = redis_url.replace("//", "")
+        print({'host': redis_url, 'port': port})
+
+        lsh = MinHashLSH(
+            storage_config={
+                'type': 'redis',
+                'redis': {
+                    'host': redis_url,
+                    'port': port
+                },
+                'basename': b'digital_checker',
+            })
+        uid = uuid.uuid4().hex
+        body = event["body-json"]
+        print(body)
+        api_key_id = event["context"]["api-key-id"]
+        try:
+            for field in ["digest", "sha256", "size_file", "meta_books"]:
+                if field not in body.keys():
+                    raise Exception("require %s argument." % field)
+            digest_str = body["digest"]
+            sha256 = body["sha256"]
+            size_file = body["size_file"]
+            meta_books = body["meta_books"][0]
+            validate_params(meta_books)
+        except Exception as e:
+            return {"statusCode": 200, "body": json.dumps({"message": e.message})}
+        m1 = convert_str_to_minhash(digest_str)
+        result = lsh.query(m1)
+        if len(result) > 0:
+            return {
+                "statusCode": 200,
+                "body": json.dumps({
+                    "message": "Duplicate",
+                }),
+            }
+        else:
+            insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
+                        meta_books)
+            lsh.insert(key=uid, minhash=m1)
+            return {
+                "statusCode": 200,
+                "body": json.dumps({
+                    "message": "Ok",
+                }),
+            }
+    else: return {"statusCode": 403, "body": json.dumps({"message": "Signature Does Not Match"})}
