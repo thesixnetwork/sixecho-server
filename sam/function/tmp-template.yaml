@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  wallet
+  
+  Sample SAM Template for wallet
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 60
+
+Resources:
+  ContractClient:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: contract_client/
+      Handler: index.handler
+      Runtime: nodejs10.x
+      Timeout: 60
+      # Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      #   Variables:
+      #       IS_PRODUCTION: false
+      #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
+      #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
+      #       TABLE_NAME: !ImportValue "TB::User"
+      #       USER_POOL_ID: !ImportValue "CognitoUserPool"
+      # Events:
+      #   SetSigner:
+      #     Type: SQS
+      #     Properties:
+      #       Queue: !ImportValue "SQS::SetSigner:Arn"
+            # BatchSize: 10  
+      Policies:
+        # - AmazonDynamoDBFullAccess
+        # - AmazonSQSFullAccess
+        # - AmazonCognitoPowerUser  
+        - Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "ssm:GetParameter"
+              - "ssm:GetParameters"
+            Resource: "*"
+  
+Outputs:
+  ContractClient:
+    Description: "ContractClient Lambda Function ARN"
+    Value: !GetAtt ContractClient.Arn  

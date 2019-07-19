@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'wallet
+
+  Sample SAM Template for wallet
+
+  '
+Globals:
+  Function:
+    Timeout: 60
+Outputs:
+  ContractClient:
+    Description: ContractClient Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - ContractClient
+      - Arn
+Resources:
+  ContractClient:
+    Properties:
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/434d3eef3ac64369622e5a5eac33f2df
+      Handler: index.handler
+      Policies:
+      - Statement:
+        - Action:
+          - ssm:GetParameter
+          - ssm:GetParameters
+          Effect: Allow
+          Resource: '*'
+      Runtime: nodejs10.x
+      Timeout: 60
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
