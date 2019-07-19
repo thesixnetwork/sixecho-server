@@ -80,3 +80,4 @@ sam/api/v1.0/*zip
 !**/sixecho_model/**
 contract/node_modules
 contract/build
+contract/truffle
