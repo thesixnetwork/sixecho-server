@@ -18,9 +18,10 @@ Resources:
       Handler: index.handler
       Runtime: nodejs10.x
       Timeout: 60
-      # Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-      #   Variables:
-      #       IS_PRODUCTION: false
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+            NETWORK_PROVIDER_URL: http://18.139.157.4:8551
+            # IS_PRODUCTION: false
       #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
       #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
       #       TABLE_NAME: !ImportValue "TB::User"

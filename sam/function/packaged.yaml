@@ -17,7 +17,10 @@ Outputs:
 Resources:
   ContractClient:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/434d3eef3ac64369622e5a5eac33f2df
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/0136784bc17b455dda239520d15f81e0
+      Environment:
+        Variables:
+          NETWORK_PROVIDER_URL: http://18.139.157.4:8551
       Handler: index.handler
       Policies:
       - Statement:
