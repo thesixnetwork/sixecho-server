@@ -83,4 +83,4 @@ contract/build
 contract/truffle
 
 sam/function/packaged-sam.yaml
-!**/node_modules/**
+**/**/node_modules/**
