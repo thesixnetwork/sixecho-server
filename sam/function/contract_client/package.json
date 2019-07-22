@@ -13,7 +13,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "create-bucket": "aws s3 mb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
     "delete-bucket": "aws s3 rb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
-    "build": "rm -rf dist/ && mkdir dist && cp index.js dist/index.js && cp -r node_modules dist/",
+    "build": "rm -rf dist/ && mkdir dist && cp index.js dist/index.js && cp -r node_modules dist/ && cp -r src dist/",
     "package": "aws cloudformation package --template ../tmp-template.yaml --s3-bucket $npm_package_config_s3BucketName --output-template ../packaged-sam.yaml --region $npm_package_config_region",
     "deploy": "aws cloudformation deploy --template-file ../packaged-sam.yaml --stack-name $npm_package_config_cloudFormationStackName --capabilities CAPABILITY_IAM --region $npm_package_config_region",
     "package-deploy": "npm run build && npm run package && npm run deploy",
@@ -24,6 +24,11 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.495.0",
+    "aws-serverless-express": "^3.3.6",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "debug": "^4.1.1",
+    "express": "^4.17.1",
     "web3": "^1.0.0-beta.55"
   }
 }
