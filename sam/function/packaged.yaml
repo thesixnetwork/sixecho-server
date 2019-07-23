@@ -20,6 +20,8 @@ Resources:
       CodeUri: s3://database-s3-y1kxwr2ft5fq/0136784bc17b455dda239520d15f81e0
       Environment:
         Variables:
+          CALLER_ADDRESS: 0xD05811C04E645468fB2EF0D74e325e4D24346a3f
+          API_CONTRACT_ADDRESS: 0x41DAAC04E5e6DdB51DD16376B954358fd6688253
           NETWORK_PROVIDER_URL: http://18.139.157.4:8551
       Handler: index.handler
       Policies:

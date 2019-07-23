@@ -1,12 +1,27 @@
 'use strict'
+const Web3 = require('web3')
+const web3 = new Web3(process.env.NETWORK_PROVIDER_URL)
+const callerAddress = process.env.CALLER_ADDRESS
+const echoAPIContractAddress = process.env.API_CONTRACT_ADDRESS
+const EchoAPI = require('../abi/contracts/APIv100.json')
+const echoAPI = new web3.eth.Contract(EchoAPI.abi, echoAPIContractAddress)
 
 class Handler {
   constructor() {
+    this._echo_api = echoAPI.methods
     this._body = {}
     this._message = ''
     this._status = 200
     this._is_error = false
     this._error_message = 'error'
+  }
+
+  getEchoAPI() {
+    return this._echo_api
+  }
+
+  getCallerAddress() {
+    return callerAddress
   }
 
   setResponseBody(body) {
@@ -45,7 +60,9 @@ class Handler {
       res.status(h._status).json(respBody)
       return
     } else if (h instanceof Error) {
-      res.status(400).json({ message: h.message })
+      const errBody = { message: h.message }
+      if (process.env.NODE_ENV === 'test') errBody.stack = h.stack
+      res.status(400).json(errBody)
       return
     }
     res.status(500).json({ message: 'unknown error occur.' })

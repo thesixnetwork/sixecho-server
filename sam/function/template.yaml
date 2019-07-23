@@ -20,6 +20,8 @@ Resources:
       Timeout: 60
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
+            CALLER_ADDRESS: [[CALLER_ADDRESS]]
+            API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
             NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
             # IS_PRODUCTION: false
       #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
