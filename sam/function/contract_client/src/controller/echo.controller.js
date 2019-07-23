@@ -56,11 +56,37 @@ class EchoCtrl {
   }
 
   static getDigest(req, res, next) {
-    //TODO @IMPLEMENT this
+    const id = req.params.id
+    const handler = new Handler()
+    const echo = handler.getEchoAPI()
+    echo
+      .downloadDigest(id)
+      .call()
+      .then(r => {
+        handler.setResponseBody(r).setStatusCode(200)
+        next(handler)
+      })
+      .catch(err => {
+        handler.setErrorMessage(err).setStatusCode(200)
+        next(handler)
+      })
   }
 
   static newDigest(req, res, next) {
-    //TODO @IMPLEMENT this
+    const [id, { digest }] = [req.params.id, req.body]
+    const handler = new Handler()
+    const echo = handler.getEchoAPI()
+    const callerAddr = handler.getCallerAddress()
+    echo
+      .uploadDigest(id, digest)
+      .send({ from: callerAddr, gas: 6721975 }, (err, txID) => {
+        if (err) {
+          handler.setErrorMessage(err).setStatusCode(400)
+        } else {
+          handler.setResponseBody(txID).setStatusCode(200)
+        }
+        next(handler)
+      })
   }
 }
 
