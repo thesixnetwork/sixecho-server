@@ -8,4 +8,6 @@ router.route('/book/:id').post(EchoController.newBook)
 router.route('/digest/:id').get(EchoController.getDigest)
 router.route('/digest/:id').post(EchoController.newDigest)
 
+router.route('/sk/').get(EchoController.getSK)
+
 module.exports = router

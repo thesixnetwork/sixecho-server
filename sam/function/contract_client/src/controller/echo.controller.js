@@ -38,6 +38,20 @@ class EchoCtrl {
       })
   }
 
+  static getSK(req, res, next) {
+    const handler = new Handler()
+    handler
+      .getSK()
+      .then(r => {
+        handler.setResponseBody(r).setStatusCode(200)
+        next(handler)
+      })
+      .catch(err => {
+        handler.setErrorMessage(err).setStatusCode(200)
+        next(handler)
+      })
+  }
+
   static getBook(req, res, next) {
     const id = req.params.id
     const handler = new Handler()

@@ -1,10 +1,18 @@
 'use strict'
 const Web3 = require('web3')
+const AWS = require('aws-sdk')
 const web3 = new Web3(process.env.NETWORK_PROVIDER_URL)
-const callerAddress = process.env.CALLER_ADDRESS
 const echoAPIContractAddress = process.env.API_CONTRACT_ADDRESS
 const EchoAPI = require('../abi/contracts/APIv100.json')
 const echoAPI = new web3.eth.Contract(EchoAPI.abi, echoAPIContractAddress)
+var ssm = new AWS.SSM({
+  apiVersion: '2014-11-06'
+})
+let account
+
+Handler.getSK().then(sk => {
+  account = web3.eth.accounts.privateKeyToAccount(sk)
+})
 
 class Handler {
   constructor() {
@@ -14,14 +22,32 @@ class Handler {
     this._status = 200
     this._is_error = false
     this._error_message = 'error'
+    this._account = account
+  }
+
+  static getSK() {
+    const options = { Name: 'SK_ECHO_WALLET' }
+    return new Promise((resolve, reject) => {
+      ssm.getParameter(options, (err, data) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve(data.Parameter.Value)
+      })
+    })
   }
 
   getEchoAPI() {
     return this._echo_api
   }
 
+  getAccount() {
+    return this._account
+  }
+
   getCallerAddress() {
-    return callerAddress
+    return this._account.address
   }
 
   setResponseBody(body) {
