@@ -28,9 +28,9 @@ class EchoCtrl {
         publisherId,
         publishDate
       )
-      .send({ from: callerAddr, gas: 6721975 }, (err, txID) => {
+      .send({ from: callerAddr, gas: 2000000 }, (err, txID) => {
         if (err) {
-          handler.setErrorMessage(err).setStatusCode(400)
+          handler.setErrorMessage(err)
         } else {
           handler.setResponseBody(txID).setStatusCode(200)
         }
@@ -40,14 +40,13 @@ class EchoCtrl {
 
   static getSK(req, res, next) {
     const handler = new Handler()
-    handler
-      .getSK()
+    Handler.getSK()
       .then(r => {
         handler.setResponseBody(r).setStatusCode(200)
         next(handler)
       })
       .catch(err => {
-        handler.setErrorMessage(err).setStatusCode(200)
+        handler.setErrorMessage(err)
         next(handler)
       })
   }
@@ -64,7 +63,7 @@ class EchoCtrl {
         next(handler)
       })
       .catch(err => {
-        handler.setErrorMessage(err).setStatusCode(200)
+        handler.setErrorMessage(err)
         next(handler)
       })
   }
@@ -81,7 +80,7 @@ class EchoCtrl {
         next(handler)
       })
       .catch(err => {
-        handler.setErrorMessage(err).setStatusCode(200)
+        handler.setErrorMessage(err)
         next(handler)
       })
   }

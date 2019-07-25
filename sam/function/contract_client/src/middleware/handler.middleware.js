@@ -1,18 +1,20 @@
 'use strict'
-const Web3 = require('web3')
+const Caver = require('caver-js')
 const AWS = require('aws-sdk')
-const web3 = new Web3(process.env.NETWORK_PROVIDER_URL)
-const echoAPIContractAddress = process.env.API_CONTRACT_ADDRESS
 const EchoAPI = require('../abi/contracts/APIv100.json')
-const echoAPI = new web3.eth.Contract(EchoAPI.abi, echoAPIContractAddress)
+const caver = new Caver(process.env.NETWORK_PROVIDER_URL)
+
+let account
+
+const echoAPI = new caver.klay.Contract(
+  EchoAPI.abi,
+  process.env.API_CONTRACT_ADDRESS
+)
 var ssm = new AWS.SSM({
   apiVersion: '2014-11-06'
 })
-let account
 
-Handler.getSK().then(sk => {
-  account = web3.eth.accounts.privateKeyToAccount(sk)
-})
+setSK2Account()
 
 class Handler {
   constructor() {
@@ -23,19 +25,6 @@ class Handler {
     this._is_error = false
     this._error_message = 'error'
     this._account = account
-  }
-
-  static getSK() {
-    const options = { Name: 'SK_ECHO_WALLET' }
-    return new Promise((resolve, reject) => {
-      ssm.getParameter(options, (err, data) => {
-        if (err) {
-          reject(err)
-          return
-        }
-        resolve(data.Parameter.Value)
-      })
-    })
   }
 
   getEchoAPI() {
@@ -93,6 +82,20 @@ class Handler {
     }
     res.status(500).json({ message: 'unknown error occur.' })
   }
+}
+
+function setSK2Account() {
+  const options = { Name: 'SK_ECHO_WALLET' }
+  return new Promise((resolve, reject) => {
+    ssm.getParameter(options, (err, data) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      account = caver.klay.accounts.wallet.add(data.Parameter.Value)
+      resolve()
+    })
+  })
 }
 
 module.exports = Handler
