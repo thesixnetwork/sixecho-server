@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "config": {
-    "s3BucketName": "contract-client",
+    "s3BucketName": "contract-client-bucket",
     "region": "ap-southeast-1",
     "cloudFormationStackName": "ContractClientStack",
     "functionName": "ContractClient"
@@ -29,7 +29,6 @@
     "caver-js": "^1.0.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
-    "express": "^4.17.1",
-    "web3": "^1.0.0-beta.55"
+    "express": "^4.17.1"
   }
 }

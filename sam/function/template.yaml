@@ -20,9 +20,8 @@ Resources:
       Timeout: 60
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-            AWS_REGION: ap-southeast-1
-            API_CONTRACT_ADDRESS: 0x133eab50ea8ec065c3e6d58385942f2095d1e9f3
-            NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
+          API_CONTRACT_ADDRESS: 0x133eab50ea8ec065c3e6d58385942f2095d1e9f3
+          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
             # IS_PRODUCTION: false
       #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
       #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
