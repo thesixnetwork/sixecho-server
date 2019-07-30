@@ -91,7 +91,7 @@ class Handler {
 }
 
 function setSK2Account() {
-  const options = { Name: 'SK_ECHO_WALLET' }
+  const options = { Name: 'SK_ECHO_WALLET', WithDecryption: true }
   return new Promise((resolve, reject) => {
     ssm.getParameter(options, (err, data) => {
       if (err) {
