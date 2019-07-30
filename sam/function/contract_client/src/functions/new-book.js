@@ -29,15 +29,14 @@ class Function {
         publisherId,
         publishDate
       )
-      .send({ from: callerAddr, gas: 2000000 }, (err, txID) => {
-        if (err) {
-          handler.setErrorMessage(err)
-          callback(handler)
-          return
-        }
-        handler.setResponseBody(txID).setStatusCode(200)
+      .send({ from: callerAddr, gas: 2000000 })
+      .then(r => {
+        handler.setResponseBody(r).setStatusCode(200)
         callback(null, handler)
-        return
+      })
+      .catch(err => {
+        handler.setErrorMessage(err)
+        callback(handler)
       })
   }
 
