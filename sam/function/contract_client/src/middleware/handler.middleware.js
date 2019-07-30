@@ -64,23 +64,29 @@ class Handler {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static Response(h, req, res, next) {
+  static Response(h) {
     if (h instanceof Handler) {
       if (h._is_error === true) {
-        res.status(h._status).json({ message: h._error_message })
-        return
+        return {
+          status: h._status,
+          message: h._error_message
+        }
       }
-      const respBody = { body: h._body }
-      if (h._message.length > 0) respBody.message = h._message
-      res.status(h._status).json(respBody)
-      return
+      return {
+        status: h._status || 200,
+        message: h._message,
+        body: h._body
+      }
     } else if (h instanceof Error) {
       const errBody = { message: h.message }
+      errBody.status = 400
       if (process.env.NODE_ENV === 'test') errBody.stack = h.stack
-      res.status(400).json(errBody)
-      return
+      return errBody
     }
-    res.status(500).json({ message: 'unknown error occur.' })
+    return {
+      status: 500,
+      message: 'unknown error occur.'
+    }
   }
 }
 

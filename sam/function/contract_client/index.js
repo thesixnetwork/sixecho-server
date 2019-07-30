@@ -1,16 +1,30 @@
 'use strict'
-const awsServerlessExpress = require('aws-serverless-express')
-const app = require('./src/app')
+const Handler = require('./src/middleware/handler.middleware')
+const functions = {
+  'new-book': require('./src/functions/new-book'),
+  'get-book': require('./src/functions/get-book'),
+  'get-digest': require('./src/functions/get-digest'),
+  'new-digest': require('./src/functions/new-digest')
+}
 
-if (process.env.NODE_ENV === 'test') {
-  const port = 3000
-  // eslint-disable-next-line no-console
-  app.listen(port, () =>
-    console.log(`Debugging app listening on port ${port}!`)
-  )
-} else {
-  const server = awsServerlessExpress.createServer(app)
-
-  exports.handler = (event, context) =>
-    awsServerlessExpress.proxy(server, event, context)
+exports.handler = (event, context, callback) => {
+  const name = event.name
+  const body = event.body || {}
+  if (functions[name]) {
+    const Fn = functions[name]
+    const invalid = Fn.schema(body)
+    if (invalid) {
+      callback(invalid)
+      return
+    }
+    new Fn(body, (err, resp) => {
+      if (err) {
+        callback(Handler.Response(err))
+        return
+      }
+      callback(null, Handler.Response(resp))
+    })
+  } else {
+    callback(new Error(`No function name ${name}.`))
+  }
 }
