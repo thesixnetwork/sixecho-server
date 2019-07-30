@@ -50,7 +50,7 @@ class Function {
       lang: Joi.string().required(),
       paperback: Joi.number().required(),
       publisher_id: Joi.string().required(),
-      publisher_date: Joi.date()
+      publish_date: Joi.date()
         .timestamp('unix')
         .required()
     })
