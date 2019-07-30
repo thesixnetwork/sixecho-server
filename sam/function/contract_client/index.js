@@ -14,7 +14,7 @@ exports.handler = (event, context, callback) => {
     const Fn = functions[name]
     const invalid = Fn.schema(body)
     if (invalid) {
-      callback(invalid)
+      callback(invalid.errorMessage)
       return
     }
     new Fn(body, (err, resp) => {
