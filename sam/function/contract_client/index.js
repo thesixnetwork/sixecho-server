@@ -8,6 +8,7 @@ const functions = {
 }
 
 exports.handler = (event, context, callback) => {
+  context.callbackWaitsForEmptyEventLoop = false
   const name = event.name
   const body = event.body || {}
   if (functions[name]) {
