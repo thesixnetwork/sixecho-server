@@ -166,8 +166,7 @@ def lambda_handler(event, context):
     for field in ["meta_books"]:
         if field not in body.keys():
             raise Exception("require %s argument." % field)
-    meta_books = body["meta_books"]
-    unsorted_dict = meta_books[0]
+    unsorted_dict = body["meta_books"]
     sorted_dict = sorted_toString(unsorted_dict)
     signature = create_sha256_signature(str(api_secret), str(sorted_dict))
     if(signature == sign):
@@ -195,7 +194,7 @@ def lambda_handler(event, context):
             digest_str = body["digest"]
             sha256 = body["sha256"]
             size_file = body["size_file"]
-            meta_books = body["meta_books"][0]
+            meta_books = body["meta_books"]
             validate_params(meta_books)
         except Exception as e:
             return {"statusCode": 200, "body": json.dumps({"message": e.message})}
