@@ -15,7 +15,7 @@ class Function {
         publish_date: publishDate
       }
     ] = [body]
-    const handler = new Handler().then(() => {
+    new Handler().then(handler => {
       const echo = handler.getEchoAPI()
       const callerAddr = handler.getCallerAddress()
       echo

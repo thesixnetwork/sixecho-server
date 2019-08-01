@@ -6,7 +6,7 @@
   "config": {
     "s3BucketName": "contract-client",
     "region": "ap-southeast-1",
-    "cloudFormationStackName": "ContractClientStack",
+    "cloudFormationStackName": "SixEchoFunction",
     "functionName": "ContractClient"
   },
   "scripts": {

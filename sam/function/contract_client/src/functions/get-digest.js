@@ -3,7 +3,7 @@ const Handler = require('../middleware/handler.middleware')
 
 class Function {
   constructor(body, callback) {
-    const handler = new Handler().then(() => {
+    new Handler().then(handler => {
       const echo = handler.getEchoAPI()
       echo
         .downloadDigest(body.id)
