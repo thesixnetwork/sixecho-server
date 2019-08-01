@@ -49,3 +49,5 @@ Outputs:
   ContractClient:
     Description: "ContractClient Lambda Function ARN"
     Value: !GetAtt ContractClient.Arn  
+    Export:
+      Name: FN::ContractClient

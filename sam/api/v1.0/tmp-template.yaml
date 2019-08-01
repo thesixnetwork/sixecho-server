@@ -34,7 +34,12 @@ Resources:
             Action:
               - "ssm:GetParameter"
               - "ssm:GetParameters"
-            Resource: "*"                  
+            Resource: "*"             
+        - Statement:
+            - 
+              Effect: Allow
+              Action: "lambda:InvokeFunction"
+              Resource: !ImportValue "FN::ContractClient"     
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
