@@ -24,7 +24,15 @@ class Handler {
     this._status = 200
     this._is_error = false
     this._error_message = 'error'
-    this._account = account
+    if (account) {
+      this._account = account
+      return Promise.resolve()
+    } else {
+      return setSK2Account().then(acc => {
+        this._account = acc
+        return Promise.resolve()
+      })
+    }
   }
 
   getEchoAPI() {
@@ -99,7 +107,7 @@ function setSK2Account() {
         return
       }
       account = caver.klay.accounts.wallet.add(data.Parameter.Value)
-      resolve()
+      resolve(account)
     })
   })
 }
