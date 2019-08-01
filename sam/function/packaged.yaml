@@ -10,6 +10,8 @@ Globals:
 Outputs:
   ContractClient:
     Description: ContractClient Lambda Function ARN
+    Export:
+      Name: FN::ContractClient
     Value:
       Fn::GetAtt:
       - ContractClient
@@ -17,12 +19,11 @@ Outputs:
 Resources:
   ContractClient:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/0136784bc17b455dda239520d15f81e0
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/2803f10674765354fcca8bc5ae65baf1
       Environment:
         Variables:
-          CALLER_ADDRESS: 0xD05811C04E645468fB2EF0D74e325e4D24346a3f
-          API_CONTRACT_ADDRESS: 0x41DAAC04E5e6DdB51DD16376B954358fd6688253
-          NETWORK_PROVIDER_URL: http://18.139.157.4:8551
+          API_CONTRACT_ADDRESS: 109868394583226093725357810955894381932170045939
+          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
       Handler: index.handler
       Policies:
       - Statement:

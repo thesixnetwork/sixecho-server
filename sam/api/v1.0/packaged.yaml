@@ -17,7 +17,7 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/8d41a4c16cff847e0daa9da51956b150
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/e6e74e0d6eeabf4c5eab0ec914a44081
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
@@ -38,6 +38,11 @@ Resources:
           - ssm:GetParameters
           Effect: Allow
           Resource: '*'
+      - Statement:
+        - Action: lambda:InvokeFunction
+          Effect: Allow
+          Resource:
+            Fn::ImportValue: FN::ContractClient
       Runtime: python2.7
       VpcConfig:
         SecurityGroupIds:
