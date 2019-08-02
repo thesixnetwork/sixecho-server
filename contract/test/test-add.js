@@ -59,7 +59,11 @@ async function start() {
         //   .then(console.log)
         //   .catch(console.error);
 
-        await getBookById(apiInst,"1")
+        await getBookById(apiInst,"6853a27b758c4ed19312d2905f65410b")
+        .then(console.log)
+        // .catch(console.error)
+
+        await getAdditionalBookData(apiInst,"6853a27b758c4ed19312d2905f65410b")
         .then(console.log)
         .catch(console.error)
 
@@ -114,6 +118,10 @@ function uploadDigest(inst,key,digest) {
 
 function getBookById(inst,id) {
   return inst.methods.getBook(id).call()
+}
+
+function getAdditionalBookData(inst,id) {
+  return inst.methods.getAdditionalBookData(id).call()
 }
 
 function downloadDigest(inst,id) {

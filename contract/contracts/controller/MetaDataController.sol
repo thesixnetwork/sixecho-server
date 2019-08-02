@@ -47,4 +47,9 @@ contract MetaDataController is AccessRestriction,Event{
         digest = _storage.getUintArray(newKey,"digest");
     }
 
+    function getAdditionalBookData(string key) public view returns(string origin,uint256 paperback) {
+        origin = _storage.getString(key,"origin");
+        paperback = _storage.getUint(key,"paperback");
+    }
+
 }

@@ -8,7 +8,7 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 60
+    Timeout: 45
 
 Resources:
   ContractClient:
@@ -17,10 +17,10 @@ Resources:
       CodeUri: contract_client/
       Handler: index.handler
       Runtime: nodejs10.x
-      Timeout: 60
+      Timeout: 45
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          API_CONTRACT_ADDRESS: 0x133eab50ea8ec065c3e6d58385942f2095d1e9f3
+          API_CONTRACT_ADDRESS: "0x7ba0dc44234a90b8e15eadb094c79dc5352b83a3"
           NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
             # IS_PRODUCTION: false
       #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"

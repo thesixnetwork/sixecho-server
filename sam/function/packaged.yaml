@@ -6,7 +6,7 @@ Description: 'wallet
   '
 Globals:
   Function:
-    Timeout: 60
+    Timeout: 45
 Outputs:
   ContractClient:
     Description: ContractClient Lambda Function ARN
@@ -19,10 +19,10 @@ Outputs:
 Resources:
   ContractClient:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/2803f10674765354fcca8bc5ae65baf1
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/8ed75b572aa3196daf7c412c57600cfa
       Environment:
         Variables:
-          API_CONTRACT_ADDRESS: 109868394583226093725357810955894381932170045939
+          API_CONTRACT_ADDRESS: '0x7ba0dc44234a90b8e15eadb094c79dc5352b83a3'
           NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
       Handler: index.handler
       Policies:
@@ -33,6 +33,6 @@ Resources:
           Effect: Allow
           Resource: '*'
       Runtime: nodejs10.x
-      Timeout: 60
+      Timeout: 45
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31

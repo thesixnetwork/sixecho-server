@@ -53,17 +53,14 @@ contract APIv100 is API ,AccessRestriction,Event {
         digest = _metaDataController.downloadDigest(newKey);
     }
 
-    function getBook(string key) public view returns (string,string,string,string,uint256) {
-        
-        string memory title;
-        string memory author;
-        string memory lang;
-        string memory publisherId;
-        uint256 publishDate;
-        
+    function getBook(string key) public view returns (string title,string author,string lang,string publisherId,uint256 publishDate) {
 
         (title,author,lang,publisherId,publishDate) = _metaDataController.getBookByKey(key);
 
-         return (title,author,lang,publisherId,publishDate);
+        //  return (title,author,lang,publisherId,publishDate);
+    }
+
+    function getAdditionalBookData(string key) public view returns(string origin,uint256 paperback) {
+        (origin,paperback) = _metaDataController.getAdditionalBookData(key);
     }
 }
