@@ -1,3 +1,4 @@
+const _ = require('underscore')
 const Joi = require('joi')
 const Handler = require('../middleware/handler.middleware')
 
@@ -8,6 +9,17 @@ class Function {
       echo
         .getBook(body.id)
         .call()
+        .then(r =>
+          echo
+            .getAdditionalBookData(body.id)
+            .call()
+            .then(additionalInfo =>
+              _.extend(
+                filterOutNumberKeyInObject(r),
+                filterOutNumberKeyInObject(additionalInfo)
+              )
+            )
+        )
         .then(r => {
           handler.setResponseBody(r).setStatusCode(200)
           callback(null, handler)
@@ -33,6 +45,16 @@ class Function {
 
     return result
   }
+}
+
+function filterOutNumberKeyInObject(r) {
+  const buildResp = {}
+  _.keys(r)
+    .filter(key => isNaN(parseInt(key)))
+    .forEach(key => {
+      buildResp[key] = r[key]
+    })
+  return buildResp
 }
 
 module.exports = Function
