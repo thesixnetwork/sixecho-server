@@ -228,6 +228,8 @@ def lambda_handler(event, context):
                     "digest" : digest_int_array
                 }
             }
+            
+            print(msg)
 
             print(os.environ['CONTRACT_CLIENT_FUNCTION'])
 

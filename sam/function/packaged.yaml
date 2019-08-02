@@ -19,7 +19,7 @@ Outputs:
 Resources:
   ContractClient:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/9f7d0b4a00d7311cec1240241ebf417f
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/510d5d61d28797d1367410f305112202
       Environment:
         Variables:
           API_CONTRACT_ADDRESS: '0x8836da547369b206c413cc93283ec42ec822a5ea'
