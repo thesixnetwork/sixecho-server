@@ -45,6 +45,14 @@ class Handler {
     return this._account.address
   }
 
+  getResponseBody() {
+    return this._body
+  }
+
+  getErrorMessage() {
+    return this._error_message
+  }
+
   setResponseBody(body) {
     this._body = body
     return this
@@ -63,7 +71,14 @@ class Handler {
   }
 
   setErrorMessage(body) {
-    this._error_message = body
+    let msg = ''
+    if (body instanceof Error) {
+      msg = `${body.name}: ${body.message}
+        ${body.stack}`
+    } else if (typeof body === 'object') {
+      msg = body.message ? body.message : body
+    }
+    this._error_message = msg
     this._is_error = true
     if (this._status < 300) this._status = 400
     return this
