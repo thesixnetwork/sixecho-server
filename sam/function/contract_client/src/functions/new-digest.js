@@ -8,7 +8,7 @@ class Function {
       const callerAddr = handler.getCallerAddress()
       echo
         .uploadDigest(body.id, body.digest)
-        .send({ from: callerAddr, gas: 2000000 })
+        .send({ from: callerAddr, gas: 10000000 })
         .then(r => {
           handler.setResponseBody(r).setStatusCode(200)
           callback(null, handler)

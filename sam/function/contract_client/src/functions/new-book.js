@@ -29,7 +29,7 @@ class Function {
           publisherId,
           publishDate
         )
-        .send({ from: callerAddr, gas: 2000000 })
+        .send({ from: callerAddr, gas: 10000000 })
         .then(r => {
           handler.setResponseBody(r).setStatusCode(200)
           callback(null, handler)
