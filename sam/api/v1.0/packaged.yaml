@@ -17,9 +17,11 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/e6e74e0d6eeabf4c5eab0ec914a44081
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/a4e22d6e64e80a3fe5988898972fde88
       Environment:
         Variables:
+          CONTRACT_CLIENT_FUNCTION:
+            Fn::ImportValue: FN::ContractClient
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
       Events:
         DigestChecker:

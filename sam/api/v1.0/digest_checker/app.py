@@ -16,6 +16,8 @@ from sixecho_model.publisher import Publisher
 import hmac
 import hashlib
 
+lambda_client = boto3.client('lambda')
+
 ssm = boto3.client('ssm')
 
 parameter = ssm.get_parameter(Name="SIXECHO_HOST_DB")
@@ -208,6 +210,31 @@ def lambda_handler(event, context):
                 }),
             }
         else:
+            # call to another lambda
+            meta_books = body["meta_books"]
+            msg = {
+                "name" : "new-book",
+                "body" : {
+                    "id" : uid,
+                    "title" : meta_books["title"],
+                    "author" : meta_books["author"],
+                    "origin" : meta_books["country_of_origin"],
+                    "lang" : meta_books["language"],
+                    "paperback" : meta_books["paperback"],
+                    "publisher_id" : meta_books["publisher_id"],
+                    "publish_date" : meta_books["publish_date"]
+                }
+            }
+
+            print(os.environ['CONTRACT_CLIENT_FUNCTION'])
+
+            invoke_response = lambda_client.invoke(
+                FunctionName=os.environ['CONTRACT_CLIENT_FUNCTION'],
+                InvocationType="Event",
+                Payload=json.dumps(msg))
+
+            print(invoke_response)
+
             insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
                         meta_books)
             lsh.insert(key=uid, minhash=m1)
