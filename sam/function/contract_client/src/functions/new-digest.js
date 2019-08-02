@@ -14,6 +14,7 @@ class Function {
           callback(null, handler)
         })
         .catch(err => {
+          console.error(err)
           handler.setErrorMessage(err)
           callback(handler)
         })
