@@ -43,6 +43,7 @@ Resources:
       Environment:
         Variables:
           REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
+          CONTRACT_CLIENT_FUNCTION: !ImportValue "FN::ContractClient"
       VpcConfig:
         SecurityGroupIds:
           - sg-0f8be61e92ce25fa2

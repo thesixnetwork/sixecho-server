@@ -59,7 +59,7 @@ async function start() {
         //   .then(console.log)
         //   .catch(console.error);
 
-        await getBookById(apiInst,"000004")
+        await getBookById(apiInst,"1")
         .then(console.log)
         .catch(console.error)
 

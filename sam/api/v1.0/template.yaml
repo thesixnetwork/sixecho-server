@@ -43,6 +43,7 @@ Resources:
       Environment:
         Variables:
           REDIS_URL: [[REDIS_URL]]
+          CONTRACT_CLIENT_FUNCTION: !ImportValue "FN::ContractClient"
       VpcConfig:
         SecurityGroupIds:
           - [[SEC_GROUP]]
