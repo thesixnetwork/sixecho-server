@@ -17,7 +17,7 @@ Outputs:
 Resources:
   DigestCheckerFunction:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/a4e22d6e64e80a3fe5988898972fde88
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/16dc65f20d13ac70787d645738a83289
       Environment:
         Variables:
           CONTRACT_CLIENT_FUNCTION:

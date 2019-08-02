@@ -212,8 +212,10 @@ def lambda_handler(event, context):
         else:
             # call to another lambda
             meta_books = body["meta_books"]
+            digest_str_array=digest_str.split(',')
+            digest_int_array = list(map(int, digest_str_array))
             msg = {
-                "name" : "new-book",
+                "name" : "new-book-and-digest",
                 "body" : {
                     "id" : uid,
                     "title" : meta_books["title"],
@@ -222,7 +224,8 @@ def lambda_handler(event, context):
                     "lang" : meta_books["language"],
                     "paperback" : meta_books["paperback"],
                     "publisher_id" : meta_books["publisher_id"],
-                    "publish_date" : meta_books["publish_date"]
+                    "publish_date" : meta_books["publish_date"],
+                    "digest" : digest_int_array
                 }
             }
 
@@ -242,6 +245,7 @@ def lambda_handler(event, context):
                 "statusCode": 200,
                 "body": json.dumps({
                     "message": "Ok",
+                    "meta_id": uid,
                 }),
             }
     else: return {"statusCode": 403, "body": json.dumps({"message": "Signature Does Not Match"})}
