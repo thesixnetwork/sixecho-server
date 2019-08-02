@@ -10,7 +10,7 @@ module.exports = {
       klaytn: {
         host: '127.0.0.1',
         port: 8551,
-        from: '0x402fc4eecfefbe25325c7fc98a423bcbcb7ba4a4', // enter your account address
+        from: '0x9df799fed9eb39dfc1beb32bad4303d0990725f3', // enter your account address
         network_id: '1001', // Baobab network id
         gas: 20000000, // transaction gas limit
         gasPrice: 25000000000 // gasPrice of Baobab is 25 Gpeb

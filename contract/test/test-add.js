@@ -59,11 +59,11 @@ async function start() {
         //   .then(console.log)
         //   .catch(console.error);
 
-        await getBookById(apiInst,"6853a27b758c4ed19312d2905f65410b")
+        await getBookById(apiInst,"1234")
         .then(console.log)
         // .catch(console.error)
 
-        await getAdditionalBookData(apiInst,"6853a27b758c4ed19312d2905f65410b")
+        await getAdditionalBookData(apiInst,"1234")
         .then(console.log)
         .catch(console.error)
 
