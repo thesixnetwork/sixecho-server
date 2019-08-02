@@ -15,29 +15,30 @@ class Function {
         publish_date: publishDate
       }
     ] = [body]
-    const handler = new Handler()
-    const echo = handler.getEchoAPI()
-    const callerAddr = handler.getCallerAddress()
-    echo
-      .addBook(
-        id,
-        title,
-        author,
-        origin,
-        lang,
-        paperback,
-        publisherId,
-        publishDate
-      )
-      .send({ from: callerAddr, gas: 2000000 })
-      .then(r => {
-        handler.setResponseBody(r).setStatusCode(200)
-        callback(null, handler)
-      })
-      .catch(err => {
-        handler.setErrorMessage(err)
-        callback(handler)
-      })
+    new Handler().then(handler => {
+      const echo = handler.getEchoAPI()
+      const callerAddr = handler.getCallerAddress()
+      echo
+        .addBook(
+          id,
+          title,
+          author,
+          origin,
+          lang,
+          paperback,
+          publisherId,
+          publishDate
+        )
+        .send({ from: callerAddr, gas: 2000000 })
+        .then(r => {
+          handler.setResponseBody(r).setStatusCode(200)
+          callback(null, handler)
+        })
+        .catch(err => {
+          handler.setErrorMessage(err)
+          callback(handler)
+        })
+    })
   }
 
   static schema(body) {

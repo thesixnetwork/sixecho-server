@@ -3,20 +3,21 @@ const Handler = require('../middleware/handler.middleware')
 
 class Function {
   constructor(body, callback) {
-    const handler = new Handler()
-    const echo = handler.getEchoAPI()
-    const callerAddr = handler.getCallerAddress()
-    echo
-      .uploadDigest(body.id, body.digest)
-      .send({ from: callerAddr, gas: 2000000 })
-      .then(r => {
-        handler.setResponseBody(r).setStatusCode(200)
-        callback(null, handler)
-      })
-      .catch(err => {
-        handler.setErrorMessage(err)
-        callback(handler)
-      })
+    new Handler().then(handler => {
+      const echo = handler.getEchoAPI()
+      const callerAddr = handler.getCallerAddress()
+      echo
+        .uploadDigest(body.id, body.digest)
+        .send({ from: callerAddr, gas: 2000000 })
+        .then(r => {
+          handler.setResponseBody(r).setStatusCode(200)
+          callback(null, handler)
+        })
+        .catch(err => {
+          handler.setErrorMessage(err)
+          callback(handler)
+        })
+    })
   }
 
   static schema(body) {

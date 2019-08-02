@@ -3,21 +3,22 @@ const Handler = require('../middleware/handler.middleware')
 
 class Function {
   constructor(body, callback) {
-    const handler = new Handler()
-    const echo = handler.getEchoAPI()
-    echo
-      .downloadDigest(body.id)
-      .call()
-      .then(r => {
-        handler.setResponseBody(r).setStatusCode(200)
-        callback(null, handler)
-        return
-      })
-      .catch(err => {
-        handler.setErrorMessage(err)
-        callback(handler)
-        return
-      })
+    new Handler().then(handler => {
+      const echo = handler.getEchoAPI()
+      echo
+        .downloadDigest(body.id)
+        .call()
+        .then(r => {
+          handler.setResponseBody(r).setStatusCode(200)
+          callback(null, handler)
+          return
+        })
+        .catch(err => {
+          handler.setErrorMessage(err)
+          callback(handler)
+          return
+        })
+    })
   }
 
   static schema(body) {

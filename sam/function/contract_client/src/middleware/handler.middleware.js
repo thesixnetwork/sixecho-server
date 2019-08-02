@@ -14,8 +14,6 @@ var ssm = new AWS.SSM({
   apiVersion: '2014-11-06'
 })
 
-setSK2Account()
-
 class Handler {
   constructor() {
     this._echo_api = echoAPI.methods
@@ -24,7 +22,15 @@ class Handler {
     this._status = 200
     this._is_error = false
     this._error_message = 'error'
-    this._account = account
+    if (account) {
+      this._account = account
+      return Promise.resolve(this)
+    } else {
+      return setSK2Account().then(acc => {
+        this._account = acc
+        return Promise.resolve(this)
+      })
+    }
   }
 
   getEchoAPI() {
@@ -98,8 +104,9 @@ function setSK2Account() {
         reject(err)
         return
       }
+      caver.klay.accounts.wallet.clear()
       account = caver.klay.accounts.wallet.add(data.Parameter.Value)
-      resolve()
+      resolve(account)
     })
   })
 }
