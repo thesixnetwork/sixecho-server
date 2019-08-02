@@ -1,32 +1,39 @@
 const Joi = require('joi')
+const Promise = require('bluebird')
 const NewBook = require('./new-book')
 const NewDigest = require('./new-digest')
 const Handler = require('../middleware/handler.middleware')
 
 class Function {
   constructor(body, callback) {
-    const newBook = new Promise((resolve, reject) => {
-      new NewBook(body, (handlerError, handler) => {
-        if (handlerError) {
-          reject(handlerError.getErrorMessage())
-          return
-        }
-        resolve(handler.getResponseBody())
+    const newBook = () => {
+      return new Promise((resolve, reject) => {
+        new NewBook(body, (handlerError, handler) => {
+          if (handlerError) {
+            reject(handlerError.getErrorMessage())
+            return
+          }
+          resolve(handler.getResponseBody())
+        })
       })
-    })
-    const newDigest = new Promise((resolve, reject) => {
-      new NewDigest(body, (handlerError, handler) => {
-        if (handlerError) {
-          reject(handlerError.getErrorMessage())
-          return
-        }
-        resolve(handler.getResponseBody())
+    }
+    const newDigest = () => {
+      new Promise((resolve, reject) => {
+        new NewDigest(body, (handlerError, handler) => {
+          if (handlerError) {
+            reject(handlerError.getErrorMessage())
+            return
+          }
+          resolve(handler.getResponseBody())
+        })
       })
+    }
+    Promise.mapSeries([newBook, newDigest], fn => {
+      return fn()
     })
-    Promise.all([newBook, newDigest])
-      .then(resps => {
+      .then(resp => {
         new Handler().then(handler => {
-          handler.setResponseBody(resps).setStatusCode(200)
+          handler.setResponseBody(resp).setStatusCode(200)
           callback(null, handler)
         })
       })
