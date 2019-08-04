@@ -47,7 +47,6 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
-        sa.Index("title_index", "title", unique=True),
         sa.Index("media_id_index", "media_id", unique=True))
 
 
