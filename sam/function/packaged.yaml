@@ -19,11 +19,11 @@ Outputs:
 Resources:
   ContractClient:
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/510d5d61d28797d1367410f305112202
+      CodeUri: s3://database-s3-ye6jp7gn3qhe/81bcdfacda52c536a7cc49761ad80319
       Environment:
         Variables:
-          API_CONTRACT_ADDRESS: '0x8836da547369b206c413cc93283ec42ec822a5ea'
-          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
+          API_CONTRACT_ADDRESS: '0xad67c0115b1dbb8ba9a263ef49c2a8b14ccf8138'
+          NETWORK_PROVIDER_URL: https://api.cypress.klaytn.net:8651
       Handler: index.handler
       Policies:
       - Statement:
