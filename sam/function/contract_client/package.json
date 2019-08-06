@@ -1,0 +1,37 @@
+{
+  "name": "contract_client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "config": {
+    "s3BucketName": "contract-client",
+    "region": "ap-southeast-1",
+    "cloudFormationStackName": "SixEchoFunction",
+    "functionName": "ContractClient"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "create-bucket": "aws s3 mb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
+    "delete-bucket": "aws s3 rb s3://$npm_package_config_s3BucketName --region $npm_package_config_region",
+    "build": "rm -rf dist/ && mkdir dist && cp index.js dist/index.js && cp -r node_modules dist/ && cp -r src dist/",
+    "package": "aws cloudformation package --template ../template.yaml --s3-bucket $npm_package_config_s3BucketName --output-template ../packaged-sam.yaml --region $npm_package_config_region",
+    "deploy": "aws cloudformation deploy --template-file ../packaged-sam.yaml --stack-name $npm_package_config_cloudFormationStackName --capabilities CAPABILITY_IAM --region $npm_package_config_region",
+    "package-deploy": "npm run build && npm run package && npm run deploy",
+    "delete-stack": "aws cloudformation delete-stack --stack-name $npm_package_config_cloudFormationStackName --region $npm_package_config_region",
+    "setup": "npm install && npm run b && (aws s3api get-bucket-location --bucket $npm_package_config_s3BucketName --region $npm_package_config_region || npm run create-bucket) && npm run package-deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.495.0",
+    "aws-serverless-express": "^3.3.6",
+    "bluebird": "^3.5.5",
+    "body-parser": "^1.19.0",
+    "caver-js": "^1.0.0",
+    "cors": "^2.8.5",
+    "debug": "^4.1.1",
+    "express": "^4.17.1",
+    "joi": "^14.3.1",
+    "underscore": "^1.9.1"
+  }
+}

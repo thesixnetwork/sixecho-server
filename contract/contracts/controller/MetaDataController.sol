@@ -13,20 +13,43 @@ contract MetaDataController is AccessRestriction,Event{
         _storage = Storage(storageAddress);
     }
 
-    function addBook(string newKey,string name,string isbn) public returns(string returnKey) {
+    function addBook(string newKey,string title,string author,string origin,string lang,uint256 paperback,string publisherId,uint256 publishDate) public onlyOwner returns(string returnKey) {
         // Validate data
         // newKey = _storage.getNewKey();
         returnKey = newKey;
-        emit OutputString("name",name);
-        emit OutputString("isbn",isbn);
-        _storage.setString(newKey,"name",name);
-        _storage.setString(newKey,"isbn",isbn);
+        // emit OutputString("title",title);
+        // emit OutputString("author",author);
+        _storage.setString(newKey,"title",title);
+        _storage.setString(newKey,"author",author);
+        _storage.setString(newKey,"origin",origin);
+        _storage.setString(newKey,"lang",lang);
+        _storage.setUint(newKey,"paperback",paperback);
+        _storage.setString(newKey,"publisher_id",publisherId);
+        _storage.setUint(newKey,"publish_date",publishDate);
         return returnKey;
     }
 
-    function getBookByKey(string key) public view returns(string name,string isbn) {
-         name = _storage.getString(key,"name");
-         isbn = _storage.getString(key,"isbn");
+    function uploadDigest(string newKey,uint256[] digest) public onlyOwner returns(string returnKey) {
+        _storage.setUintArray(newKey,"digest",digest);
+
+        returnKey = newKey;
+    }
+
+    function getBookByKey(string key) public view returns(string title,string author,string lang,string publisherId,uint256 publishDate) {
+         title = _storage.getString(key,"title");
+         author = _storage.getString(key,"author");
+         lang = _storage.getString(key,"lang");
+         publisherId = _storage.getString(key,"publisher_id");
+         publishDate = _storage.getUint(key,"publish_date");
+    }
+
+    function downloadDigest(string newKey) public view returns(uint256[] digest) {
+        digest = _storage.getUintArray(newKey,"digest");
+    }
+
+    function getAdditionalBookData(string key) public view returns(string origin,uint256 paperback) {
+        origin = _storage.getString(key,"origin");
+        paperback = _storage.getUint(key,"paperback");
     }
 
 }

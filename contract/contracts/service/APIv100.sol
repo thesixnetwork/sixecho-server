@@ -27,19 +27,40 @@ contract APIv100 is API ,AccessRestriction,Event {
         return _version;
     }
 
-    function addBook(string newKey,string name,string isbn) public onlyBy(_owner) returns(string key) {
-        key = _metaDataController.addBook(newKey,name,isbn);
+    function addBook(string newKey,
+                string title,
+                string author,
+                string origin,
+                string lang,
+                uint256 paperback,
+                string publisherId,
+                uint256 publishDate
+                ) public onlyBy(_owner) returns(string) {
+        string memory returnKey;
+        returnKey = _metaDataController.addBook(newKey,title,author,origin,lang,paperback,publisherId,publishDate);
         // emit OutputBytes32("returnKey",key);
-        return key;
+
+        return returnKey;
     }
 
-    function getBook(string key) public view returns (string,string) {
-        
-        string memory name;
-        string memory isbn;
+    function uploadDigest(string newKey,uint256[] digest) public onlyBy(_owner) returns(string) {
+        string memory returnKey;
+        returnKey = _metaDataController.uploadDigest(newKey,digest);
+        return returnKey;
+    }
 
-        (name,isbn) = _metaDataController.getBookByKey(key);
+    function downloadDigest(string newKey) public view returns (uint256[] digest) {
+        digest = _metaDataController.downloadDigest(newKey);
+    }
 
-         return (name,isbn);
+    function getBook(string key) public view returns (string title,string author,string lang,string publisherId,uint256 publishDate) {
+
+        (title,author,lang,publisherId,publishDate) = _metaDataController.getBookByKey(key);
+
+        //  return (title,author,lang,publisherId,publishDate);
+    }
+
+    function getAdditionalBookData(string key) public view returns(string origin,uint256 paperback) {
+        (origin,paperback) = _metaDataController.getAdditionalBookData(key);
     }
 }

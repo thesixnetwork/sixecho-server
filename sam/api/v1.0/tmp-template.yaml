@@ -19,7 +19,7 @@ Resources:
           Fn::Transform:
             Name: 'AWS::Include'
             Parameters:
-              Location: s3://database-s3-y1kxwr2ft5fq/swagger.yml
+              Location: s3://database-s3-ye6jp7gn3qhe/swagger.yml
   DigestCheckerFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -34,19 +34,25 @@ Resources:
             Action:
               - "ssm:GetParameter"
               - "ssm:GetParameters"
-            Resource: "*"                  
+            Resource: "*"             
+        - Statement:
+            - 
+              Effect: Allow
+              Action: "lambda:InvokeFunction"
+              Resource: !ImportValue "FN::ContractClient"     
       Environment:
         Variables:
-          REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
+          REDIS_URL: redis://leaderboard-sixr.ccmmcu.ng.0001.apse1.cache.amazonaws.com:6379
+          CONTRACT_CLIENT_FUNCTION: !ImportValue "FN::ContractClient"
       VpcConfig:
         SecurityGroupIds:
-          - sg-0f8be61e92ce25fa2
+          - sg-0da764378b632cc1a
         SubnetIds:
-          - subnet-0eae485b84ba86984
-          - subnet-0f81bee03aeafa36e
-          - subnet-0ad3d7569bc683087
-          - subnet-0fa7a627c045e0519
-          - subnet-004048eaf89b38053
+          - subnet-03734c6bb5a4876c3
+          - subnet-01a3be5d0bfa184b9
+          - subnet-0d22e00fda2eea724
+          - subnet-09dc307efc9941f2e
+          - subnet-09a1766975a9809ff
       Events:
         DigestChecker:
           Type: Api 

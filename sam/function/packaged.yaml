@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'wallet
+
+  Sample SAM Template for wallet
+
+  '
+Globals:
+  Function:
+    Timeout: 45
+Outputs:
+  ContractClient:
+    Description: ContractClient Lambda Function ARN
+    Export:
+      Name: FN::ContractClient
+    Value:
+      Fn::GetAtt:
+      - ContractClient
+      - Arn
+Resources:
+  ContractClient:
+    Properties:
+      CodeUri: s3://database-s3-ye6jp7gn3qhe/81bcdfacda52c536a7cc49761ad80319
+      Environment:
+        Variables:
+          API_CONTRACT_ADDRESS: '0xad67c0115b1dbb8ba9a263ef49c2a8b14ccf8138'
+          NETWORK_PROVIDER_URL: https://api.cypress.klaytn.net:8651
+      Handler: index.handler
+      Policies:
+      - Statement:
+        - Action:
+          - ssm:GetParameter
+          - ssm:GetParameters
+          Effect: Allow
+          Resource: '*'
+      Runtime: nodejs10.x
+      Timeout: 45
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

@@ -34,10 +34,16 @@ Resources:
             Action:
               - "ssm:GetParameter"
               - "ssm:GetParameters"
-            Resource: "*"                  
+            Resource: "*"             
+        - Statement:
+            - 
+              Effect: Allow
+              Action: "lambda:InvokeFunction"
+              Resource: !ImportValue "FN::ContractClient"     
       Environment:
         Variables:
           REDIS_URL: [[REDIS_URL]]
+          CONTRACT_CLIENT_FUNCTION: !ImportValue "FN::ContractClient"
       VpcConfig:
         SecurityGroupIds:
           - [[SEC_GROUP]]

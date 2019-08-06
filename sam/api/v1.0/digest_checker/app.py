@@ -16,6 +16,8 @@ from sixecho_model.publisher import Publisher
 import hmac
 import hashlib
 
+lambda_client = boto3.client('lambda')
+
 ssm = boto3.client('ssm')
 
 parameter = ssm.get_parameter(Name="SIXECHO_HOST_DB")
@@ -166,8 +168,7 @@ def lambda_handler(event, context):
     for field in ["meta_books"]:
         if field not in body.keys():
             raise Exception("require %s argument." % field)
-    meta_books = body["meta_books"]
-    unsorted_dict = meta_books[0]
+    unsorted_dict = body["meta_books"]
     sorted_dict = sorted_toString(unsorted_dict)
     signature = create_sha256_signature(str(api_secret), str(sorted_dict))
     if(signature == sign):
@@ -195,7 +196,7 @@ def lambda_handler(event, context):
             digest_str = body["digest"]
             sha256 = body["sha256"]
             size_file = body["size_file"]
-            meta_books = body["meta_books"][0]
+            meta_books = body["meta_books"]
             validate_params(meta_books)
         except Exception as e:
             return {"statusCode": 200, "body": json.dumps({"message": e.message})}
@@ -209,6 +210,36 @@ def lambda_handler(event, context):
                 }),
             }
         else:
+            # call to another lambda
+            meta_books = body["meta_books"]
+            digest_str_array=digest_str.split(',')
+            digest_int_array = list(map(int, digest_str_array))
+            msg = {
+                "name" : "new-book-and-digest",
+                "body" : {
+                    "id" : uid,
+                    "title" : meta_books["title"],
+                    "author" : meta_books["author"],
+                    "origin" : meta_books["country_of_origin"],
+                    "lang" : meta_books["language"],
+                    "paperback" : meta_books["paperback"],
+                    "publisher_id" : meta_books["publisher_id"],
+                    "publish_date" : meta_books["publish_date"],
+                    "digest" : digest_int_array
+                }
+            }
+            
+            print(msg)
+
+            print(os.environ['CONTRACT_CLIENT_FUNCTION'])
+
+            invoke_response = lambda_client.invoke(
+                FunctionName=os.environ['CONTRACT_CLIENT_FUNCTION'],
+                InvocationType="Event",
+                Payload=json.dumps(msg))
+
+            print(invoke_response)
+
             insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
                         meta_books)
             lsh.insert(key=uid, minhash=m1)
@@ -216,6 +247,7 @@ def lambda_handler(event, context):
                 "statusCode": 200,
                 "body": json.dumps({
                     "message": "Ok",
+                    "meta_id": uid,
                 }),
             }
     else: return {"statusCode": 403, "body": json.dumps({"message": "Signature Does Not Match"})}
