@@ -1,32 +1,33 @@
 ---
-swagger: '2.0'
+swagger: "2.0"
 info:
-  version: '1.0'
+  version: "1.0"
   title: Sixecho API v1.0
 host: 7w698x7ue7.execute-api.ap-southeast-1.amazonaws.com
 basePath: "/prod"
 schemes:
-- https
+  - https
 paths:
   "/checker":
     post:
       consumes:
-      - application/json
+        - application/json
       responses:
-        '200':
+        "200":
           description: 200 response
           headers:
             Access-Control-Allow-Origin:
               type: string
       security:
-      - api_key: []
-      - api_sign: []
+        - api_key: []
+        - api_sign: []
       x-amazon-apigateway-integration:
+        credentials: !GetAtt ApiGatewayInvokeLambdaPermission.Arn
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
         responses:
           default:
-            statusCode: '200'
+            statusCode: "200"
             responseParameters:
               method.response.header.Access-Control-Allow-Origin: "'*'"
         passthroughBehavior: when_no_templates
@@ -82,9 +83,9 @@ paths:
         type: aws
     options:
       consumes:
-      - application/json
+        - application/json
       responses:
-        '200':
+        "200":
           description: 200 response
           headers:
             Access-Control-Allow-Origin:
@@ -96,7 +97,7 @@ paths:
       x-amazon-apigateway-integration:
         responses:
           default:
-            statusCode: '200'
+            statusCode: "200"
             responseParameters:
               method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
