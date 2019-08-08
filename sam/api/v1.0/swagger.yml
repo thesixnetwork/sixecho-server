@@ -22,7 +22,8 @@ paths:
         - api_key: []
         - api_sign: []
       x-amazon-apigateway-integration:
-        credentials: !GetAtt ApiGatewayInvokeLambdaPermission.Arn
+        credentials:
+          Fn::GetAtt: "${ApiGatewayInvokeLambdaPermission.Arn}"
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DigestCheckerFunction.Arn}/invocations"
         responses:
