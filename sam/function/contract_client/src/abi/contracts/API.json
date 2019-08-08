@@ -40,14 +40,14 @@
     "absolutePath": "/Users/mar/Workspace/echo/sixecho-server/contract/contracts/service/API.sol",
     "exportedSymbols": {
       "API": [
-        748
+        774
       ]
     },
-    "id": 749,
+    "id": 775,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 737,
+        "id": 763,
         "literals": [
           "solidity",
           "^",
@@ -63,9 +63,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 748,
+        "id": 774,
         "linearizedBaseContracts": [
-          748
+          774
         ],
         "name": "API",
         "nodeType": "ContractDefinition",
@@ -73,7 +73,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 742,
+            "id": 768,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -81,22 +81,22 @@
             "name": "getDataControllerAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 738,
+              "id": 764,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "83:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 741,
+              "id": 767,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 740,
+                  "id": 766,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 742,
+                  "scope": 768,
                   "src": "107:7:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -105,7 +105,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 739,
+                    "id": 765,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "107:7:5",
@@ -120,7 +120,7 @@
               ],
               "src": "106:9:5"
             },
-            "scope": 748,
+            "scope": 774,
             "src": "50:66:5",
             "stateMutability": "view",
             "superFunction": null,
@@ -129,7 +129,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 747,
+            "id": 773,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -137,22 +137,22 @@
             "name": "getVersion",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 743,
+              "id": 769,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "140:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 746,
+              "id": 772,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 745,
+                  "id": 771,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 747,
+                  "scope": 773,
                   "src": "164:6:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -161,7 +161,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 744,
+                    "id": 770,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "164:6:5",
@@ -176,14 +176,14 @@
               ],
               "src": "163:8:5"
             },
-            "scope": 748,
+            "scope": 774,
             "src": "121:51:5",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 749,
+        "scope": 775,
         "src": "26:148:5"
       }
     ],
@@ -193,14 +193,14 @@
     "absolutePath": "/Users/mar/Workspace/echo/sixecho-server/contract/contracts/service/API.sol",
     "exportedSymbols": {
       "API": [
-        748
+        774
       ]
     },
-    "id": 749,
+    "id": 775,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 737,
+        "id": 763,
         "literals": [
           "solidity",
           "^",
@@ -216,9 +216,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 748,
+        "id": 774,
         "linearizedBaseContracts": [
-          748
+          774
         ],
         "name": "API",
         "nodeType": "ContractDefinition",
@@ -226,7 +226,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 742,
+            "id": 768,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -234,22 +234,22 @@
             "name": "getDataControllerAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 738,
+              "id": 764,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "83:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 741,
+              "id": 767,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 740,
+                  "id": 766,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 742,
+                  "scope": 768,
                   "src": "107:7:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -258,7 +258,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 739,
+                    "id": 765,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "107:7:5",
@@ -273,7 +273,7 @@
               ],
               "src": "106:9:5"
             },
-            "scope": 748,
+            "scope": 774,
             "src": "50:66:5",
             "stateMutability": "view",
             "superFunction": null,
@@ -282,7 +282,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 747,
+            "id": 773,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -290,22 +290,22 @@
             "name": "getVersion",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 743,
+              "id": 769,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "140:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 746,
+              "id": 772,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 745,
+                  "id": 771,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 747,
+                  "scope": 773,
                   "src": "164:6:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -314,7 +314,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 744,
+                    "id": 770,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "164:6:5",
@@ -329,14 +329,14 @@
               ],
               "src": "163:8:5"
             },
-            "scope": 748,
+            "scope": 774,
             "src": "121:51:5",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 749,
+        "scope": 775,
         "src": "26:148:5"
       }
     ],
@@ -348,5 +348,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.2",
-  "updatedAt": "2019-07-25T04:50:17.531Z"
+  "updatedAt": "2019-08-08T10:59:17.766Z"
 }
