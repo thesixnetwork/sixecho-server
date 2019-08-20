@@ -24,21 +24,19 @@ def upgrade():
     publisher_id is who is sending data to our server, basically it's in publisher table
     """
     op.create_table(
-        "digital_contents", sa.Column('id', sa.Integer, primary_key=True),
+        "digital_contents",
+        sa.Column('id', sa.string(50), primary_key=True),
         sa.Column('api_key_id', sa.String(255), nullable=False),
-        sa.Column('media_id', sa.String(255), nullable=False),
         sa.Column('category_id', sa.INTEGER, nullable=False),
         sa.Column('publisher_id', sa.INTEGER, nullable=False),
+        sa.Column('digital_content_id', sa.INTEGER, nullable=False),
+        sa.Column('title', sa.String(255), nullable=False),
         sa.Column('digest', sa.Text(), nullable=False),
         sa.Column('sha256', sa.String(255), nullable=False),
         sa.Column('size_file', sa.String(255), nullable=False),
-        sa.Column('title', sa.String(255), nullable=False),
         sa.Column('author', sa.String(255), nullable=False),
-        sa.Column('country_of_origin', sa.String(255), nullable=False),
-        sa.Column('language', sa.String(255), nullable=False),
-        sa.Column('publish_date', sa.DateTime, nullable=False),
-        sa.Column('meta_books', sa.Text(), nullable=False),
-        sa.Column('paperback', sa.INTEGER, nullable=False),
+        sa.Column('content_type', sa.String(255), nullable=False),
+        sa.Column('meta_media', sa.Text(), nullable=False),
         sa.Column('created_at',
                   sa.DateTime(timezone=True),
                   nullable=False,
@@ -47,7 +45,14 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
-        sa.Index("media_id_index", "media_id", unique=True))
+        sa.Index("api_key_id_index", "api_key_id_index"),
+        sa.Index("category_id_index", "category_id"),
+        sa.Index("publish_id_index", "publish_id"),
+        sa.Index(
+            "digital_content_id_index",
+            "digital_content_id",
+        ),
+    )
 
 
 def downgrade():

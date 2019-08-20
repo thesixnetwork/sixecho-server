@@ -21,6 +21,7 @@ def upgrade():
         'partners',
         sa.Column('api_key', sa.String(255), primary_key=True),
         sa.Column('api_secret', sa.String(255), nullable=False),
+        sa.Column('name', sa.String(255), nullable=False),
         sa.Column('created_at',
                   sa.DateTime(timezone=True),
                   nullable=False,

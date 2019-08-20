@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import json
 import os
 import uuid
@@ -11,10 +13,8 @@ from datasketch import LeanMinHash, MinHash, MinHashLSH
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from sixecho_model.category import Category
-from sixecho_model.publisher import Publisher
-import hmac
-import hashlib
+from .sixecho_model.category import Category
+from .sixecho_model.publisher import Publisher
 
 lambda_client = boto3.client('lambda')
 
@@ -28,7 +28,8 @@ DB_HOST = parameter["Parameter"]["Value"]
 DB_USER = parameter2["Parameter"]["Value"]
 DB_PASSWORD = parameter3["Parameter"]["Value"]
 
-URL_ENGINE = "mysql+mysqlconnector://%s:%s@%s/sixecho" % (DB_USER, DB_PASSWORD, DB_HOST)
+URL_ENGINE = "mysql+mysqlconnector://%s:%s@%s/sixecho" % (DB_USER, DB_PASSWORD,
+                                                          DB_HOST)
 ENGINE = create_engine(URL_ENGINE, echo=True)
 Session = sessionmaker(bind=ENGINE)
 
@@ -73,7 +74,7 @@ def insert_mysql(api_key_id=None,
     publish_date_str = datetime.utcfromtimestamp(publish_date).strftime(
         '%Y-%m-%d %H:%M:%S')
 
-    sql = "INSERT INTO digital_contents (api_key_id, media_id, digest, sha256, size_file, meta_books,category_id,publisher_id,title,author,country_of_origin,language,paperback,publish_date) VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    sql = "INSERT INTO digital_contents (api_key_id, id, digest, sha256, size_file, meta_books,category_id,publisher_id,title,author,country_of_origin,language,paperback,publish_date) VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
     val = (api_key_id, media_id, digest, sha256, size_file, json_meta_books,
            category_id, publisher_id, title, author, country_of_origin,
            language, paperback, publish_date_str)
@@ -81,17 +82,17 @@ def insert_mysql(api_key_id=None,
     mydb.commit()
     mycursor.close()
 
-def get_API_Secret(api_key):
+
+def get_api_secret(api_key):
     # import module
     import mysql.connector
     # import errorcode
     from mysql.connector import errorcode
     try:
-        mydb = mysql.connector.connect(
-            host=DB_HOST,
-            user=DB_USER,
-            passwd=DB_PASSWORD,
-            database="sixecho")
+        mydb = mysql.connector.connect(host=DB_HOST,
+                                       user=DB_USER,
+                                       passwd=DB_PASSWORD,
+                                       database="sixecho")
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print('Invalid credential. Unable to access database.')
@@ -110,6 +111,7 @@ def get_API_Secret(api_key):
     # close connection
     mydb.close()
     return myresult  # not using
+
 
 def validate_params(meta_books):
     language = meta_books["language"]
@@ -139,17 +141,12 @@ def check_category(category_id):
         raise Exception("Category ID is not exist")
     session.close()
 
+
 def sorted_toString(unsorted_dict):
     s = ''
     for key, value in sorted(unsorted_dict.items()):
         s = s + str(key) + str(value)
     return s
-    # sortednames = sorted(unsorted_dict.keys(), key=lambda x: x.lower())
-    # print(sortednames)
-    # sorted_dict = {}
-    # for i in sortednames:
-    #     sorted_dict[i] = str(unsorted_dict[i])
-    # return str(sorted_dict)
 
 
 def create_sha256_signature(secret, message):
@@ -160,94 +157,109 @@ def create_sha256_signature(secret, message):
     signature = hmac.new(secret_byte, message_byte, hashlib.sha256).hexdigest()
     return signature
 
+
+def validate_image(event):
+    print("aa")
+
+
+def validate_text(event):
+    host, redis_url, port = os.environ["REDIS_URL"].split(":")
+    redis_url = redis_url.replace("//", "")
+    print({'host': redis_url, 'port': port})
+
+    lsh = MinHashLSH(
+        storage_config={
+            'type': 'redis',
+            'redis': {
+                'host': redis_url,
+                'port': port
+            },
+            'basename': b'digital_checker',
+        })
+    uid = uuid.uuid4().hex
+    body = event["body-json"]
+    print(body)
+    api_key_id = event["context"]["api-key-id"]
+    try:
+        for field in ["digest", "sha256", "size_file", "meta_media"]:
+            if field not in body.keys():
+                raise Exception("require %s argument." % field)
+        digest_str = body["digest"]
+        sha256 = body["sha256"]
+        size_file = body["size_file"]
+        meta_books = body["meta_media"]
+        validate_params(meta_books)
+    except Exception as e:
+        return {"statusCode": 200, "body": json.dumps({"message": str(e)})}
+    m1 = convert_str_to_minhash(digest_str)
+    result = lsh.query(m1)
+    if len(result) > 0:
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": "Duplicate",
+            }),
+        }
+    else:
+        meta_books = body["meta_media"]
+        digest_str_array = digest_str.split(',')
+        digest_int_array = list(map(int, digest_str_array))
+        msg = {
+            "name": "new-book-and-digest",
+            "body": {
+                "id": uid,
+                "title": meta_books["title"],
+                "author": meta_books["author"],
+                "origin": meta_books["country_of_origin"],
+                "lang": meta_books["language"],
+                "paperback": meta_books["paperback"],
+                "publisher_id": meta_books["publisher_id"],
+                "publish_date": meta_books["publish_date"],
+                "digest": digest_int_array
+            }
+        }
+
+        print(msg)
+
+        print(os.environ['CONTRACT_CLIENT_FUNCTION'])
+
+        invoke_response = lambda_client.invoke(
+            FunctionName=os.environ['CONTRACT_CLIENT_FUNCTION'],
+            InvocationType="Event",
+            Payload=json.dumps(msg))
+
+        print(invoke_response)
+
+        insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
+                     meta_books)
+        lsh.insert(key=uid, minhash=m1)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": "Ok",
+                "meta_id": uid,
+            }),
+        }
+
+
 def lambda_handler(event, context):
     api_key = event["context"]["api-key"]
     sign = event["params"]["header"]["x-api-sign"]
-    api_secret = get_API_Secret(api_key)[0]
+    api_secret = get_api_secret(api_key)[0]
     body = event["body-json"]
-    for field in ["meta_books"]:
+    for field in ["meta_media"]:
         if field not in body.keys():
             raise Exception("require %s argument." % field)
-    unsorted_dict = body["meta_books"]
+    unsorted_dict = body["meta_media"]
     sorted_dict = sorted_toString(unsorted_dict)
     signature = create_sha256_signature(str(api_secret), str(sorted_dict))
-    if(signature == sign):
-        host, redis_url, port = os.environ["REDIS_URL"].split(":")
-        redis_url = redis_url.replace("//", "")
-        print({'host': redis_url, 'port': port})
-
-        lsh = MinHashLSH(
-            storage_config={
-                'type': 'redis',
-                'redis': {
-                    'host': redis_url,
-                    'port': port
-                },
-                'basename': b'digital_checker',
-            })
-        uid = uuid.uuid4().hex
-        body = event["body-json"]
-        print(body)
-        api_key_id = event["context"]["api-key-id"]
-        try:
-            for field in ["digest", "sha256", "size_file", "meta_books"]:
-                if field not in body.keys():
-                    raise Exception("require %s argument." % field)
-            digest_str = body["digest"]
-            sha256 = body["sha256"]
-            size_file = body["size_file"]
-            meta_books = body["meta_books"]
-            validate_params(meta_books)
-        except Exception as e:
-            return {"statusCode": 200, "body": json.dumps({"message": e.message})}
-        m1 = convert_str_to_minhash(digest_str)
-        result = lsh.query(m1)
-        if len(result) > 0:
-            return {
-                "statusCode": 200,
-                "body": json.dumps({
-                    "message": "Duplicate",
-                }),
-            }
-        else:
-            # call to another lambda
-            meta_books = body["meta_books"]
-            digest_str_array=digest_str.split(',')
-            digest_int_array = list(map(int, digest_str_array))
-            msg = {
-                "name" : "new-book-and-digest",
-                "body" : {
-                    "id" : uid,
-                    "title" : meta_books["title"],
-                    "author" : meta_books["author"],
-                    "origin" : meta_books["country_of_origin"],
-                    "lang" : meta_books["language"],
-                    "paperback" : meta_books["paperback"],
-                    "publisher_id" : meta_books["publisher_id"],
-                    "publish_date" : meta_books["publish_date"],
-                    "digest" : digest_int_array
-                }
-            }
-            
-            print(msg)
-
-            print(os.environ['CONTRACT_CLIENT_FUNCTION'])
-
-            invoke_response = lambda_client.invoke(
-                FunctionName=os.environ['CONTRACT_CLIENT_FUNCTION'],
-                InvocationType="Event",
-                Payload=json.dumps(msg))
-
-            print(invoke_response)
-
-            insert_mysql(api_key_id, uid, digest_str, sha256, size_file,
-                        meta_books)
-            lsh.insert(key=uid, minhash=m1)
-            return {
-                "statusCode": 200,
-                "body": json.dumps({
-                    "message": "Ok",
-                    "meta_id": uid,
-                }),
-            }
-    else: return {"statusCode": 403, "body": json.dumps({"message": "Signature Does Not Match"})}
+    if (signature != sign):
+        return {
+            "statusCode": 403,
+            "body": json.dumps({"message": "Signature Does Not Match"})
+        }
+    if body["type"] == "TEXT":
+        print(event)
+        #  validate_text(event)
+    elif body["type"] == "IMAGE":
+        validate_image(event)
