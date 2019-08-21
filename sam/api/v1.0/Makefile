@@ -1,5 +1,5 @@
 build:
-	docker run -v "$PWD/digest_checker":/var/task -it  lambci/lambda:build-python3.7  pip install -r requirements.txt -t .
+	docker run -v "$(PWD)/digest_checker":/var/task -it lambci/lambda:build-python3.7 pip install -r requirements.txt -t .
 deploy:
 	aws s3 cp swagger.yml s3://${BUCKET_NAME}/swagger.yml --profile ${AWS_PROFILE}
 	sam package --template-file tmp-template.yaml --s3-bucket ${BUCKET_NAME} --output-template-file packaged.yaml --profile ${AWS_PROFILE}
