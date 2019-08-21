@@ -25,7 +25,7 @@ Resources:
     Properties:
       CodeUri: digest_checker/
       Handler: app.lambda_handler
-      Runtime: python2.7
+      Runtime: python3.7
       Policies:
         - AmazonVPCFullAccess
         - Statement:

@@ -1,20 +1,5 @@
 build:
-	echo "[install]" > ~/.pydistutils.cfg
-	echo "prefix=" >> ~/.pydistutils.cfg
-	pip2 install datasketch==1.4.3 -t ./digest_checker --no-deps
-	pip2 install mysql-connector-python==8.0.16  -t ./digest_checker --no-deps
-	pip2 install pycountry==18.12.8  -t ./digest_checker --no-deps
-	pip2 install SQLAlchemy==1.3.3  -t ./digest_checker --no-deps
-	pip2 install six==1.11.0  -t ./digest_checker --no-deps
-	pip2 install boto3 -t ./digest_checker --no-deps
-	pip2 install urllib3==1.25.3 -t ./digest_checker --no-deps
-	pip2 install six==1.12.0 -t ./digest_checker --no-deps
-	pip2 install botocore==1.12.199 -t ./digest_checker --no-deps
-	pip2 install s3transfer==0.2.1 -t ./digest_checker --no-deps
-	cd ./digest_checker && rm -Rf numpy* && cd ..
-	curl -o ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl https://files.pythonhosted.org/packages/1f/c7/198496417c9c2f6226616cff7dedf2115a4f4d0276613bab842ec8ac1e23/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl 
-	pip2 install ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl -t ./digest_checker 
-	rm ./digest_checker/numpy-1.16.4-cp27-cp27mu-manylinux1_x86_64.whl
+	docker run -v "$PWD/digest_checker":/var/task -it  lambci/lambda:build-python3.7  pip install -r requirements.txt -t .
 deploy:
 	aws s3 cp swagger.yml s3://${BUCKET_NAME}/swagger.yml --profile ${AWS_PROFILE}
 	sam package --template-file tmp-template.yaml --s3-bucket ${BUCKET_NAME} --output-template-file packaged.yaml --profile ${AWS_PROFILE}
