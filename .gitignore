@@ -78,6 +78,8 @@ sam/api/v1.0/*zip
 !app.py
 !requirements.txt
 !**/sixecho_model/**
+!text.py
+!image.py
 contract/node_modules
 contract/build
 contract/truffle
