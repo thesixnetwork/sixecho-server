@@ -48,7 +48,7 @@ def upgrade():
                   server_default=func.now()),
         sa.Index("api_key_id_index", "api_key_id"),
         sa.Index("category_id_index", "category_id"),
-        sa.Index("publish_id_index", "publish_id"),
+        sa.Index("publish_id_index", "publisher_id"),
         sa.Index(
             "digital_content_id_index",
             "digital_content_id",
