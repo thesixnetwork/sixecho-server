@@ -46,7 +46,7 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
-        sa.Index("api_key_id_index", "api_key_id_index"),
+        sa.Index("api_key_id_index", "api_key_id"),
         sa.Index("category_id_index", "category_id"),
         sa.Index("publish_id_index", "publish_id"),
         sa.Index(
