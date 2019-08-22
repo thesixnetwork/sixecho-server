@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('api_key_id', sa.String(255), nullable=False),
         sa.Column('category_id', sa.INTEGER, nullable=False),
         sa.Column('publisher_id', sa.INTEGER, nullable=False),
-        sa.Column('digital_content_id', sa.INTEGER, nullable=False),
+        sa.Column('digital_content_id', sa.INTEGER, nullable=True),
         sa.Column('title', sa.String(255), nullable=False),
         sa.Column('digest', sa.Text(), nullable=False),
         sa.Column('sha256', sa.String(255), nullable=False),

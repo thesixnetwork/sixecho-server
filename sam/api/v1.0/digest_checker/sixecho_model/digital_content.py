@@ -9,7 +9,7 @@ class DigitalContent(Base):
     id = Column(String, primary_key=True)
     api_key_id = Column(String)
     category_id = Column(Integer)
-    publish_id = Column(Integer)
+    publisher_id = Column(Integer)
     digital_content_id = Column(String)
     title = Column(String)
     digest = Column(String)
