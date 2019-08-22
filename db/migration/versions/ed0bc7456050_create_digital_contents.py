@@ -6,8 +6,9 @@ Create Date: 2019-05-16 16:18:42.969682
 
 """
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.sql import func
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = 'ed0bc7456050'
@@ -25,7 +26,7 @@ def upgrade():
     """
     op.create_table(
         "digital_contents",
-        sa.Column('id', sa.string(50), primary_key=True),
+        sa.Column('id', sa.String(50), primary_key=True),
         sa.Column('api_key_id', sa.String(255), nullable=False),
         sa.Column('category_id', sa.INTEGER, nullable=False),
         sa.Column('publisher_id', sa.INTEGER, nullable=False),
