@@ -7,6 +7,13 @@ from datasketch import LeanMinHash, MinHash, MinHashLSH
 
 from .sixecho_model.category import Category
 from .sixecho_model.publisher import Publisher
+from .sixecho_model.digital_content import DigitalContent
+import os
+import boto3
+from datetime import datetime
+
+
+lambda_client = boto3.client('lambda')
 
 
 def validate_params(Session, meta_books):
@@ -46,7 +53,58 @@ def convert_str_to_minhash(digest):
     m1 = MinHash(hashvalues=data_array)
     return m1
 
+def send_to_chain(uid,body):
+    meta_books = body["meta_media"]
+    digest_str = body["digest"]
+    digest_str_array = digest_str.split(',')
+    digest_int_array = list(map(int, digest_str_array))
+    msg = {
+        "name": "new-book-and-digest",
+        "body": {
+            "id": uid,
+            "title": meta_books["title"],
+            "author": meta_books["author"],
+            "origin": meta_books["country_of_origin"],
+            "lang": meta_books["language"],
+            "paperback": meta_books["paperback"],
+            "publisher_id": meta_books["publisher_id"],
+            "publish_date": meta_books["publish_date"],
+            "digest": digest_int_array
+        }
+    }
 
+    print(msg)
+
+    print(os.environ['CONTRACT_CLIENT_FUNCTION'])
+
+    invoke_response = lambda_client.invoke(
+        FunctionName=os.environ['CONTRACT_CLIENT_FUNCTION'],
+        InvocationType="Event",
+        Payload=json.dumps(msg))
+        
+def insert_mysql(Session, api_key_id=None,uid=None,body=None):
+    session = Session()
+    digest_str = body["digest"]
+    sha256 = body["sha256"]
+    size_file = body["size_file"]
+    content_type= body["type"]
+    meta_books = body["meta_media"]
+    
+    json_meta_books = json.dumps(meta_books)
+    category_id = meta_books["category_id"]
+    publisher_id = meta_books["publisher_id"]
+    title = meta_books["title"]
+    author = meta_books["author"]
+    country_of_origin = meta_books["country_of_origin"]
+    language = meta_books["language"]
+    paperback = meta_books["paperback"]
+    publish_date = meta_books["publish_date"]
+    digital_content_id = meta_books["digital_content_id"]
+    digital_content = DigitalContent(api_key_id=api_key_id,id=uid,category_id=category_id,publisher_id=publisher_id,digital_content_id=digital_content_id,title=title,digest=digest_str,sha256=sha256,size_file=size_file,content_type=content_type,author=author,meta_media=json_meta_books,created_at=datetime.now(), updated_at=datetime.now)
+    session.add(digital_content)
+    session.commit()
+    
+    
 def validate_text(Session, event):
     host, redis_url, port = os.environ["REDIS_URL"].split(":")
     redis_url = redis_url.replace("//", "")
@@ -76,3 +134,17 @@ def validate_text(Session, event):
     except Exception as e:
         return {"statusCode": 200, "body": json.dumps({"message": str(e)})}
     m1 = convert_str_to_minhash(digest_str)
+    result = lsh.query(m1)
+    if len(result) > 0:
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": "Duplicate",
+            }),
+        }
+    else:
+        insert_mysql(Session,api_key_id,uid,body)
+
+
+
+    
