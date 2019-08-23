@@ -63,6 +63,7 @@ def validate(Session, event):
       check_hash_image(Session,phash)  
       check_hash_image(Session,dhash)  
       check_hash_image(Session,whash)  
+      insert_mysql(Session, api_key_id, uid, body)
       return {
             "statusCode": 200,
             "body": json.dumps({
