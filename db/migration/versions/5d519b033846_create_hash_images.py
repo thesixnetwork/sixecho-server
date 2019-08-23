@@ -21,6 +21,7 @@ def upgrade():
     op.create_table(
         'hash_images', sa.Column('id', sa.String(25), primary_key=True),
         sa.Column('digital_content_id', sa.Integer, nullable=False),
+        sa.Column('hash_type', sa.String(10), nullable=False),
         sa.Column('created_at',
                   sa.DateTime(timezone=True),
                   nullable=False,
