@@ -21,26 +21,6 @@ def validate_params(Session, meta_books):
     country_of_origin = meta_books["country_of_origin"]
     if pycountry.countries.get(alpha_3=country_of_origin) is None:
         raise Exception("ISO 3166-1 Country is invalid.")
-    #  publisher_id = meta_books["publisher_id"]
-    #  check_publisher(Session, publisher_id)
-    #  category_id = meta_books["category_id"]
-    #  check_category(Session, category_id)
-
-
-#  def check_publisher(Session, publisher_id):
-#  print("Check Publisher")
-#  session = Session()
-#  publisher = session.query(Publisher).filter_by(id=publisher_id).first()
-#  if publisher is None:
-#  raise Exception("Publisher ID is not exist")
-#  session.close()
-
-#  def check_category(Session, category_id):
-#  session = Session()
-#  category = session.query(Category).filter_by(id=category_id).first()
-#  if category is None:
-#  raise Exception("Category ID is not exist")
-#  session.close()
 
 
 def convert_str_to_minhash(digest):

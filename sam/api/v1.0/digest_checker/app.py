@@ -68,9 +68,6 @@ def get_api_secret(api_key):
     myresult = [x[0] for x in mycursor.fetchall()]
     mycursor.close()
     mydb.close()
-    print("Result ---")
-    print(myresult)
-    print("@@@@@@@@@@")
     return myresult  # not using
 
 
@@ -100,14 +97,16 @@ def lambda_handler(event, context):
     sign = event["params"]["header"]["x-api-sign"]
     api_secret = get_api_secret(api_key)[0]
     body = event["body-json"]
+    print(body)
+    print("-------------------------")
     try:
+        meta_media = body["meta_media"]
         for field in [
                 "digest", "sha256", "size_file", "meta_media", "category_id",
                 "publisher_id"
         ]:
-            if field not in body.keys():
+            if field not in np.concatenate((list(body.keys()),list(meta_media.keys()))):
                 raise Exception("require %s argument." % field)
-        meta_media = body["meta_media"]
         check_publisher(meta_media["publisher_id"])
         check_category(meta_media["category_id"])
     except Exception as e:
