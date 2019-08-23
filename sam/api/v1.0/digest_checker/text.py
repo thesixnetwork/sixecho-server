@@ -3,11 +3,11 @@ import uuid
 
 import numpy as np
 import pycountry
-from datasketch import LeanMinHash, MinHash, MinHashLSH
+from datasketch import  MinHash, MinHashLSH
 
-from .sixecho_model.category import Category
-from .sixecho_model.publisher import Publisher
-from .sixecho_model.digital_content import DigitalContent
+from sixecho_model import Category
+from sixecho_model import Publisher
+from sixecho_model import DigitalContent
 import os
 import boto3
 from datetime import datetime
@@ -17,6 +17,7 @@ lambda_client = boto3.client('lambda')
 
 
 def validate_params(Session, meta_books):
+    print("Validate Param")
     language = meta_books["language"]
     if pycountry.languages.get(alpha_2=language) is None:
         raise Exception("ISO 639-1 Language is invalid.")
@@ -30,6 +31,7 @@ def validate_params(Session, meta_books):
 
 
 def check_publisher(Session, publisher_id):
+    print("Check Publisher")
     session = Session()
     publisher = session.query(Publisher).filter_by(id=publisher_id).first()
     if publisher is None:
@@ -95,12 +97,12 @@ def insert_mysql(Session, api_key_id=None,uid=None,body=None):
     publisher_id = meta_books["publisher_id"]
     title = meta_books["title"]
     author = meta_books["author"]
-    country_of_origin = meta_books["country_of_origin"]
-    language = meta_books["language"]
-    paperback = meta_books["paperback"]
-    publish_date = meta_books["publish_date"]
-    digital_content_id = meta_books["digital_content_id"]
-    digital_content = DigitalContent(api_key_id=api_key_id,id=uid,category_id=category_id,publisher_id=publisher_id,digital_content_id=digital_content_id,title=title,digest=digest_str,sha256=sha256,size_file=size_file,content_type=content_type,author=author,meta_media=json_meta_books,created_at=datetime.now(), updated_at=datetime.now)
+    # country_of_origin = meta_books["country_of_origin"]
+    # language = meta_books["language"]
+    # paperback = meta_books["paperback"]
+    # publish_date = meta_books["publish_date"]
+    digital_content_id = meta_books.get("digital_content_id")
+    digital_content = DigitalContent(api_key_id=api_key_id,id=uid,category_id=category_id,publisher_id=publisher_id,digital_content_id=digital_content_id,title=title,digest=digest_str,sha256=sha256,size_file=size_file,content_type=content_type,author=author,meta_media=json_meta_books,created_at=datetime.now(), updated_at=datetime.now())
     session.add(digital_content)
     session.commit()
     
@@ -132,6 +134,7 @@ def validate_text(Session, event):
         meta_books = body["meta_media"]
         validate_params(Session, meta_books)
     except Exception as e:
+        print("Error " + str(e))
         return {"statusCode": 200, "body": json.dumps({"message": str(e)})}
     m1 = convert_str_to_minhash(digest_str)
     result = lsh.query(m1)
@@ -144,6 +147,16 @@ def validate_text(Session, event):
         }
     else:
         insert_mysql(Session,api_key_id,uid,body)
+        lsh.insert(key=uid, minhash=m1)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "message": "Ok",
+                "id": uid,
+            }),
+        }
+
+
 
 
 

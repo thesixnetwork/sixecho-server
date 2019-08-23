@@ -63,6 +63,9 @@ def get_api_secret(api_key):
     myresult = [x[0] for x in mycursor.fetchall()]
     mycursor.close()
     mydb.close()
+    print("Result ---")
+    print(myresult) 
+    print("@@@@@@@@@@")
     return myresult  # not using
 
  
@@ -70,8 +73,15 @@ def validate_image(event):
     print(event)
      
 def lambda_handler(event, context):
+    print("####### Event #############")
+    print(event)
+    print("###########################")
     api_key = event["context"]["api-key"]
     sign = event["params"]["header"]["x-api-sign"]
+    print("@@@ HEADER @@@")
+    print(api_key)
+    print(sign)
+    print("@@@@@@@@@@@@@@")
     api_secret = get_api_secret(api_key)[0]
     body = event["body-json"]
     for field in ["meta_media"]:
@@ -86,6 +96,7 @@ def lambda_handler(event, context):
             "body": json.dumps({"message": "Signature Does Not Match"})
         }
     if body["type"] == "TEXT":
-        text.validate_text(Session,event)
+        print("Type TEXT")
+        return text.validate_text(Session,event)
     elif body["type"] == "IMAGE":
-        validate_image(event)
+        return validate_image(event)

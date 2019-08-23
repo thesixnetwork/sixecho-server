@@ -21,7 +21,7 @@ Resources:
   DigestCheckerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/e6870ace567a955ccfd584bd31245f19
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/cf096518e1a606da39c1f60a671fba23
       Handler: app.lambda_handler
       Runtime: python3.7
       Policies:
