@@ -1,15 +1,18 @@
-import mysql.connector
-from mysql.connector import errorcode
-import boto3
 import hashlib
 import hmac
 import json
 import os
+
+import boto3
+import mysql.connector
+import numpy as np
+from mysql.connector import errorcode
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import numpy as np
+import image
 import text
+from sixecho_model import Category, DigitalContent, Publisher
 
 lambda_client = boto3.client('lambda')
 
@@ -34,7 +37,8 @@ def sorted_to_string(unsorted_dict):
     for key, value in sorted(unsorted_dict.items()):
         s = s + str(key) + str(value)
     return s
-    
+
+
 def create_sha256_signature(secret, message):
     secret = str(secret)
     message = str(message)
@@ -42,6 +46,7 @@ def create_sha256_signature(secret, message):
     message_byte = str(message).encode('utf-8')
     signature = hmac.new(secret_byte, message_byte, hashlib.sha256).hexdigest()
     return signature
+
 
 def get_api_secret(api_key):
     try:
@@ -64,29 +69,51 @@ def get_api_secret(api_key):
     mycursor.close()
     mydb.close()
     print("Result ---")
-    print(myresult) 
+    print(myresult)
     print("@@@@@@@@@@")
     return myresult  # not using
 
- 
+
 def validate_image(event):
     print(event)
-     
+
+
+def check_publisher(publisher_id):
+    print("Check Publisher")
+    session = Session()
+    publisher = session.query(Publisher).filter_by(id=publisher_id).first()
+    if publisher is None:
+        raise Exception("Publisher ID is not exist")
+    session.close()
+
+
+def check_category(category_id):
+    session = Session()
+    category = session.query(Category).filter_by(id=category_id).first()
+    if category is None:
+        raise Exception("Category ID is not exist")
+    session.close()
+
+
 def lambda_handler(event, context):
-    print("####### Event #############")
-    print(event)
-    print("###########################")
     api_key = event["context"]["api-key"]
     sign = event["params"]["header"]["x-api-sign"]
-    print("@@@ HEADER @@@")
-    print(api_key)
-    print(sign)
-    print("@@@@@@@@@@@@@@")
     api_secret = get_api_secret(api_key)[0]
     body = event["body-json"]
-    for field in ["meta_media"]:
-        if field not in body.keys():
-            raise Exception("require %s argument." % field)
+    try:
+        for field in [
+                "digest", "sha256", "size_file", "meta_media", "category_id",
+                "publisher_id"
+        ]:
+            if field not in body.keys():
+                raise Exception("require %s argument." % field)
+        meta_media = body["meta_media"]
+        check_publisher(meta_media["publisher_id"])
+        check_category(meta_media["category_id"])
+    except Exception as e:
+        print("Error " + str(e))
+        return {"statusCode": 200, "body": json.dumps({"message": str(e)})}
+
     unsorted_dict = body["meta_media"]
     sorted_dict = sorted_to_string(unsorted_dict)
     signature = create_sha256_signature(str(api_secret), str(sorted_dict))
@@ -95,8 +122,8 @@ def lambda_handler(event, context):
             "statusCode": 403,
             "body": json.dumps({"message": "Signature Does Not Match"})
         }
+
     if body["type"] == "TEXT":
-        print("Type TEXT")
-        return text.validate_text(Session,event)
+        return text.validate(Session, event)
     elif body["type"] == "IMAGE":
-        return validate_image(event)
+        return image.validate(Session, event)
