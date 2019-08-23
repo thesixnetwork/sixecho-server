@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
 Description: 'v1.0
 
   Sample SAM Template for v1.0
@@ -7,6 +8,76 @@ Description: 'v1.0
 Globals:
   Function:
     Timeout: 120
+Resources:
+  SixechoApi100:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: s3://database-s3-y1kxwr2ft5fq/swagger.yml
+  DigestCheckerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/368f338f8e96bbdf119dba087c1adee0
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Policies:
+      - AmazonVPCFullAccess
+      - Statement:
+        - Effect: Allow
+          Action:
+          - ssm:GetParameter
+          - ssm:GetParameters
+          Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action: lambda:InvokeFunction
+          Resource:
+            Fn::ImportValue: FN::ContractClient
+      Environment:
+        Variables:
+          REDIS_URL: redis://sixr-leaderboard.rezkjn.ng.0001.apse1.cache.amazonaws.com:6379
+          CONTRACT_CLIENT_FUNCTION:
+            Fn::ImportValue: FN::ContractClient
+      VpcConfig:
+        SecurityGroupIds:
+        - sg-0f8be61e92ce25fa2
+        SubnetIds:
+        - subnet-0eae485b84ba86984
+        - subnet-0f81bee03aeafa36e
+        - subnet-0ad3d7569bc683087
+        - subnet-0fa7a627c045e0519
+        - subnet-004048eaf89b38053
+      Events:
+        DigestChecker:
+          Type: Api
+          Properties:
+            Path: /wallet/balance
+            Method: ANY
+            RestApiId:
+              Ref: SixechoApi100
+  ApiGatewayInvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - DigestCheckerFunction
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+        - ''
+        - - 'arn:aws:execute-api:'
+          - Ref: AWS::Region
+          - ':'
+          - Ref: AWS::AccountId
+          - ':'
+          - Ref: DigestCheckerFunction
+          - /*/*/*
 Outputs:
   DigestCheckerFunction:
     Description: Digest Checker Lambda Function ARN
@@ -14,55 +85,3 @@ Outputs:
       Fn::GetAtt:
       - DigestCheckerFunction
       - Arn
-Resources:
-  DigestCheckerFunction:
-    Properties:
-      CodeUri: s3://database-s3-ye6jp7gn3qhe/90fd9d1bcd327d44b7e5f644135ec06c
-      Environment:
-        Variables:
-          CONTRACT_CLIENT_FUNCTION:
-            Fn::ImportValue: FN::ContractClient
-          REDIS_URL: redis://leaderboard-sixr.ccmmcu.ng.0001.apse1.cache.amazonaws.com:6379
-      Events:
-        DigestChecker:
-          Properties:
-            Method: ANY
-            Path: /wallet/balance
-            RestApiId:
-              Ref: SixechoApi100
-          Type: Api
-      Handler: app.lambda_handler
-      Policies:
-      - AmazonVPCFullAccess
-      - Statement:
-        - Action:
-          - ssm:GetParameter
-          - ssm:GetParameters
-          Effect: Allow
-          Resource: '*'
-      - Statement:
-        - Action: lambda:InvokeFunction
-          Effect: Allow
-          Resource:
-            Fn::ImportValue: FN::ContractClient
-      Runtime: python2.7
-      VpcConfig:
-        SecurityGroupIds:
-        - sg-0da764378b632cc1a
-        SubnetIds:
-        - subnet-03734c6bb5a4876c3
-        - subnet-01a3be5d0bfa184b9
-        - subnet-0d22e00fda2eea724
-        - subnet-09dc307efc9941f2e
-        - subnet-09a1766975a9809ff
-    Type: AWS::Serverless::Function
-  SixechoApi100:
-    Properties:
-      DefinitionBody:
-        Fn::Transform:
-          Name: AWS::Include
-          Parameters:
-            Location: s3://database-s3-ye6jp7gn3qhe/swagger.yml
-      StageName: prod
-    Type: AWS::Serverless::Api
-Transform: AWS::Serverless-2016-10-31

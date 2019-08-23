@@ -1,27 +1,27 @@
-"""create partners table
+"""create hash images
 
-Revision ID: 697ad27726a8
-Revises: c49e3cfa0654
-Create Date: 2019-08-04 17:11:00.055503
+Revision ID: 5d519b033846
+Revises: 697ad27726a8
+Create Date: 2019-08-23 15:29:55.639581
 
 """
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.sql import func
 
+from alembic import op
+
 # revision identifiers, used by Alembic.
-revision = '697ad27726a8'
-down_revision = 'c49e3cfa0654'
+revision = '5d519b033846'
+down_revision = '697ad27726a8'
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
     op.create_table(
-        'partners',
-        sa.Column('api_key', sa.String(255), primary_key=True),
-        sa.Column('api_secret', sa.String(255), nullable=False),
-        sa.Column('name', sa.String(255), nullable=False),
+        'hash_images', sa.Column('id', sa.String(25), primary_key=True),
+        sa.Column('digital_content_id', sa.Integer, nullable=False),
+        sa.Column('hash_type', sa.String(10), nullable=False),
         sa.Column('created_at',
                   sa.DateTime(timezone=True),
                   nullable=False,
@@ -30,8 +30,8 @@ def upgrade():
                   sa.DateTime(timezone=True),
                   nullable=False,
                   server_default=func.now()),
-    )
+        sa.Index("digital_content_id_index", "digital_content_id"))
 
 
 def downgrade():
-    op.drop_table('partners')
+    op.drop_table('hash_images')
