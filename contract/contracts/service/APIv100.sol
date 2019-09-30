@@ -27,7 +27,7 @@ contract APIv100 is API ,AccessRestriction,Event {
         return _version;
     }
 
-    function addAsset(string h, string blockNo) public only(_owner) returns (string) {
+    function addAsset(string h, string blockNo) public onlyBy(_owner) returns (string) {
 
         string memory returnKey;
         returnKey = _metaDataController.addAsset(h, blockNo);
