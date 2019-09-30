@@ -13,6 +13,12 @@ contract MetaDataController is AccessRestriction,Event{
         _storage = Storage(storageAddress);
     }
 
+    function addAsset(string h, string blockNo) public onlyOwner returns (string) {
+        _storage.setString(h,"hash",h);
+        _storage.setString(blockNo,"block_number",blockNo);
+        return h; 
+    }
+
     function addBook(string newKey,string title,string author,string origin,string lang,uint256 paperback,string publisherId,uint256 publishDate) public onlyOwner returns(string returnKey) {
         // Validate data
         // newKey = _storage.getNewKey();
