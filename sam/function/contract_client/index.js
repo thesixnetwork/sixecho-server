@@ -6,7 +6,7 @@ const functions = {
   'get-book': require('./src/functions/get-book'),
   'get-digest': require('./src/functions/get-digest'),
   'new-digest': require('./src/functions/new-digest'),
-  'new-asset': require('./src/functions/net-asset')
+  'new-asset': require('./src/functions/new-asset')
 }
 
 exports.handler = (event, context, callback) => {
