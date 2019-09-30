@@ -5,7 +5,8 @@ const functions = {
   'new-book-and-digest': require('./src/functions/new-book-and-digest'),
   'get-book': require('./src/functions/get-book'),
   'get-digest': require('./src/functions/get-digest'),
-  'new-digest': require('./src/functions/new-digest')
+  'new-digest': require('./src/functions/new-digest'),
+  'new-asset': require('./src/functions/net-asset')
 }
 
 exports.handler = (event, context, callback) => {
