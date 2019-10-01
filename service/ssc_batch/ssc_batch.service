@@ -1,0 +1,11 @@
+[Unit]
+Description=ssc_batch
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/home/jonathan/wombatapp
+
+[Install]
+WantedBy=multi-user.target
