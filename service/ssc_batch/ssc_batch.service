@@ -5,7 +5,7 @@ Description=ssc_batch
 Type=simple
 Restart=always
 RestartSec=5s
-ExecStart=/home/jonathan/wombatapp
+ExecStart=~/ssc_batch
 
 [Install]
 WantedBy=multi-user.target

@@ -1,18 +1,40 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
-	"github.com/elastic/go-elasticsearch"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	l "github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/eoscanada/eos-go"
+	"github.com/google/uuid"
+	"github.com/olivere/elastic"
+	v4 "github.com/olivere/elastic/aws/v4"
 )
 
 var (
-	api             *eos.API
-	es              *elasticsearch.Client
+	api *eos.API
+	// elasticURL      = os.Getenv("ELASTIC_URL")
+	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
+	eosURL          = "http://ec2-3-0-89-218.ap-southeast-1.compute.amazonaws.com:8888"
+	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
+	ctx             = context.Background()
 	currentBlockNum uint32
+	region          = os.Getenv("AWS_REGION")
+	cred            = credentials.NewEnvCredentials()
+	signingClient   = v4.NewV4SigningClient(cred, region)
+	sess            = session.Must(session.NewSession())
+	client, _       = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
+		elastic.SetHealthcheck(false),
+		// elastic.SetHttpClient(signingClient),
+		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
+		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
 )
 
 func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
@@ -27,17 +49,66 @@ func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
 }
 
 func updateBlockNumToES() {
-	fmt.Println("Update Elasticsearch BlockNum")
+	doc := map[string]interface{}{
+		"block_num": currentBlockNum,
+	}
+	docJSON, _ := json.Marshal(doc)
+	_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
+	if err != nil {
+		panic(err.Error())
+	}
 }
-
-func invokeLambda(data *eos.BlockResp) {
-	fmt.Printf("%#v\n", data.ID.String())
-	// fmt.Println("Invokde lambda")
+func queryAssetID(blockNum uint32) string {
+	uid := uuid.New()
+	return uid.String()
+}
+func excuteSSC(blockResp *eos.BlockResp) {
+	insertAssetToES(blockResp)
+	for _, tx := range blockResp.Transactions {
+		if tx.Transaction.Packed == nil {
+			continue
+		}
+		klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+		assetID := queryAssetID(blockResp.BlockNum)
+		insertTxToES(assetID, tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
+	}
+}
+func submitToKlaytn(sscTxID string, blockNum uint32) string {
+	type KlaytnBody struct {
+		Hash        string `json:"hash"`
+		BlockNumber string `json:"block_number"`
+	}
+	type RequestKlaytn struct {
+		Name string     `json:"name"`
+		Body KlaytnBody `json:"body"`
+	}
+	payload := RequestKlaytn{
+		Name: "new-asset",
+		Body: KlaytnBody{
+			Hash:        sscTxID,
+			BlockNumber: string(int64(blockNum)),
+		},
+	}
+	payloadJSON, _ := json.Marshal(payload)
+	fmt.Println(string(payloadJSON))
+	lambdaClient := l.New(sess)
+	input := &l.InvokeInput{
+		FunctionName: aws.String(lambdaFunction),
+		Payload:      payloadJSON,
+	}
+	result, err := lambdaClient.Invoke(input)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println(string(result.Payload))
+	var response ResponseKlatyn
+	json.Unmarshal(result.Payload, &response)
+	return response.Body.TransactionHash
 }
 
 func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 	go func() {
-		for range time.Tick(time.Second * 10) {
+		for range time.Tick(time.Second * 3) {
 			updateBlockNumToES()
 		}
 	}()
@@ -55,7 +126,8 @@ func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 		for {
 			select {
 			case data := <-block:
-				invokeLambda(data)
+				// fmt.Println(reflect.TypeOf(data))
+				excuteSSC(data)
 			}
 		}
 	}()
@@ -63,36 +135,22 @@ func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 
 func getCurrentBlockNum() {
 	infoResp, _ := api.GetInfo()
-	currentBlockNum = infoResp.HeadBlockNum
+	currentBlockNum = getCurrentBlockNumFromES(client, infoResp.HeadBlockNum)
 }
 
 func createIndexElastic() {
 	fmt.Println("Load elasticsearch...")
-	cfg := elasticsearch.Config{
-		Addresses: []string{
-			"https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com",
-		},
-	}
-	var err error
-	es, err = elasticsearch.NewClient(cfg)
-
-	if err != nil {
-		log.Fatalf("Error creating the client: %s", err)
-	}
-	res, err := es.Info()
-	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
-	}
-	log.Println(res)
-	createSSCBlockNumIndex(es)
-	createSSCDigitalContentIndex(es)
+	createSSCBlockNumIndex(client)
+	createSSCDigitalContentIndex(client)
+	createSSCImageIndex(client)
 }
 
 func main() {
 	createIndexElastic()
 	block := make(chan *eos.BlockResp)
 	blockNum := make(chan uint32)
-	api = eos.New("http://ec2-3-0-89-218.ap-southeast-1.compute.amazonaws.com:8888")
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCData{})
+	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
 	tailBlock(block, blockNum)
