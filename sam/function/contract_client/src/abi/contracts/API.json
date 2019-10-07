@@ -35,19 +35,19 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.4.24;\n\ncontract API {\n    \n    function getDataControllerAddress() public view returns (address);\n    function getVersion() public view returns (string);\n}",
-  "sourcePath": "/Users/mar/Workspace/echo/sixecho-server/contract/contracts/service/API.sol",
+  "sourcePath": "/Users/zatan007/Documents/sixecho-server/contract/contracts/service/API.sol",
   "ast": {
-    "absolutePath": "/Users/mar/Workspace/echo/sixecho-server/contract/contracts/service/API.sol",
+    "absolutePath": "/Users/zatan007/Documents/sixecho-server/contract/contracts/service/API.sol",
     "exportedSymbols": {
       "API": [
-        748
+        804
       ]
     },
-    "id": 749,
+    "id": 805,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 737,
+        "id": 793,
         "literals": [
           "solidity",
           "^",
@@ -63,9 +63,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 748,
+        "id": 804,
         "linearizedBaseContracts": [
-          748
+          804
         ],
         "name": "API",
         "nodeType": "ContractDefinition",
@@ -73,7 +73,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 742,
+            "id": 798,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -81,22 +81,22 @@
             "name": "getDataControllerAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 738,
+              "id": 794,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "83:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 741,
+              "id": 797,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 740,
+                  "id": 796,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 742,
+                  "scope": 798,
                   "src": "107:7:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -105,7 +105,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 739,
+                    "id": 795,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "107:7:5",
@@ -120,7 +120,7 @@
               ],
               "src": "106:9:5"
             },
-            "scope": 748,
+            "scope": 804,
             "src": "50:66:5",
             "stateMutability": "view",
             "superFunction": null,
@@ -129,7 +129,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 747,
+            "id": 803,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -137,22 +137,22 @@
             "name": "getVersion",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 743,
+              "id": 799,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "140:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 746,
+              "id": 802,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 745,
+                  "id": 801,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 747,
+                  "scope": 803,
                   "src": "164:6:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -161,7 +161,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 744,
+                    "id": 800,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "164:6:5",
@@ -176,31 +176,31 @@
               ],
               "src": "163:8:5"
             },
-            "scope": 748,
+            "scope": 804,
             "src": "121:51:5",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 749,
+        "scope": 805,
         "src": "26:148:5"
       }
     ],
     "src": "0:174:5"
   },
   "legacyAST": {
-    "absolutePath": "/Users/mar/Workspace/echo/sixecho-server/contract/contracts/service/API.sol",
+    "absolutePath": "/Users/zatan007/Documents/sixecho-server/contract/contracts/service/API.sol",
     "exportedSymbols": {
       "API": [
-        748
+        804
       ]
     },
-    "id": 749,
+    "id": 805,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 737,
+        "id": 793,
         "literals": [
           "solidity",
           "^",
@@ -216,9 +216,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 748,
+        "id": 804,
         "linearizedBaseContracts": [
-          748
+          804
         ],
         "name": "API",
         "nodeType": "ContractDefinition",
@@ -226,7 +226,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 742,
+            "id": 798,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -234,22 +234,22 @@
             "name": "getDataControllerAddress",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 738,
+              "id": 794,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "83:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 741,
+              "id": 797,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 740,
+                  "id": 796,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 742,
+                  "scope": 798,
                   "src": "107:7:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -258,7 +258,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 739,
+                    "id": 795,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "107:7:5",
@@ -273,7 +273,7 @@
               ],
               "src": "106:9:5"
             },
-            "scope": 748,
+            "scope": 804,
             "src": "50:66:5",
             "stateMutability": "view",
             "superFunction": null,
@@ -282,7 +282,7 @@
           {
             "body": null,
             "documentation": null,
-            "id": 747,
+            "id": 803,
             "implemented": false,
             "isConstructor": false,
             "isDeclaredConst": true,
@@ -290,22 +290,22 @@
             "name": "getVersion",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 743,
+              "id": 799,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "140:2:5"
             },
             "payable": false,
             "returnParameters": {
-              "id": 746,
+              "id": 802,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 745,
+                  "id": 801,
                   "name": "",
                   "nodeType": "VariableDeclaration",
-                  "scope": 747,
+                  "scope": 803,
                   "src": "164:6:5",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -314,7 +314,7 @@
                     "typeString": "string"
                   },
                   "typeName": {
-                    "id": 744,
+                    "id": 800,
                     "name": "string",
                     "nodeType": "ElementaryTypeName",
                     "src": "164:6:5",
@@ -329,14 +329,14 @@
               ],
               "src": "163:8:5"
             },
-            "scope": 748,
+            "scope": 804,
             "src": "121:51:5",
             "stateMutability": "view",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 749,
+        "scope": 805,
         "src": "26:148:5"
       }
     ],
@@ -344,9 +344,9 @@
   },
   "compiler": {
     "name": "solc",
-    "version": "0.4.26+commit.4563c3fc.Emscripten.clang"
+    "version": "0.4.25+commit.59dbf8f1.Emscripten.clang"
   },
   "networks": {},
   "schemaVersion": "2.0.2",
-  "updatedAt": "2019-07-25T04:50:17.531Z"
+  "updatedAt": "2019-09-30T11:40:32.204Z"
 }
