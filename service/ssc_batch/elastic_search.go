@@ -30,6 +30,16 @@ type MDataImage struct {
 	PreviewURL string `json:"preview_url"`
 }
 
+//MDataText struct
+type MDataText struct {
+	Author          string `json:"author"`
+	Language        string `json:"language"`
+	PaperBack       string `json:"paperback"`
+	PublishDate     int64  `json:"publish_date"`
+	Title           string `json:"title"`
+	CountryOfOrigin string `json:"country_of_origin"`
+}
+
 func createSSCBlockNumIndex(client *elastic.Client) {
 	elasticIndex := "ssc_blocknum_v1"
 	elasticAlias := "ssc_blocknum"
@@ -165,6 +175,68 @@ func createSSCImageIndex(client *elastic.Client) {
 	}
 }
 
+func createSSCTextIndex(client *elastic.Client) {
+	elasticIndex := "ssc_texts_v1"
+	elasticAlias := "ssc_texts"
+	exists, err := client.IndexExists(elasticIndex).Do(ctx)
+	if err != nil {
+		panic(err.Error())
+	}
+	mapping := `
+	{
+		"settings": {
+			"number_of_shards": 5,
+			"number_of_replicas": 0
+		},
+		"mappings": {		
+			"_doc": {
+							"properties": {
+									"digest":{
+											"type":"keyword"
+									},
+									"sha256":{
+											"type":"keyword"
+									},
+									"size_file":{
+											"type":"keyword"
+									},
+									"author":{
+										"type":"keyword"
+									},
+									"title":{
+										"type":"keyword"
+									},
+									"country_of_origin":{
+										"type":"keyword"
+									},
+									"language":{
+										"type":"keyword"
+									},
+									"paperback":{
+										"type":"long"
+									},
+									"publish_date":{
+										"type":"long"
+									}
+							}
+					}
+		}
+	}`
+	if !exists {
+		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
+		if err != nil {
+			// Handle error
+			panic(err)
+		}
+		if !createIndex.Acknowledged {
+			// Not acknowledged
+		}
+		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32 {
 	elasticAlias := "ssc_blocknum"
 	doc, err := client.Get().Index(elasticAlias).Type("_doc").Id("1").Pretty(true).Do(ctx)
@@ -228,6 +300,10 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						mData := MDataImage{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
 						insertImageToES(iData, mData)
+					case "TEXT":
+						mData := MDataText{}
+						json.Unmarshal([]byte(sscData.MData), &mData)
+						insertTextToES(iData, mData)
 					}
 				}
 			}
@@ -244,6 +320,22 @@ func insertImageToES(iData IData, mData MDataImage) {
 	dataImage := DataImage{}
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
+	digitalContentJSON, _ := json.Marshal(dataImage)
+	_, err := client.Index().Index(elasticAlias).Type("_doc").BodyString(string(digitalContentJSON)).Do(ctx)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func insertTextToES(iData IData, mData MDataText) {
+	elasticAlias := "ssc_texts"
+	type DataImage struct {
+		IData
+		MDataText
+	}
+	dataImage := DataImage{}
+	dataImage.IData = iData
+	dataImage.MDataText = mData
 	digitalContentJSON, _ := json.Marshal(dataImage)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
