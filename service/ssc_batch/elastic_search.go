@@ -10,10 +10,13 @@ import (
 
 //SSCData struct
 type SSCData struct {
-	To       eos.AccountName
-	Quantity eos.Asset
+	AssetID  int64
+	Author   eos.Name
+	Category eos.Name
+	Owner    eos.Name
 	IData    string
 	MData    string
+	AA       string
 }
 
 //IData struct
@@ -292,6 +295,8 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 			for _, action := range data.Transaction.Actions {
 				fmt.Println(action.Account)
 				fmt.Println(action.Name)
+
+				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCData)
 					json.Unmarshal([]byte(sscData.IData), &iData)
@@ -299,19 +304,20 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					case "IMAGE":
 						mData := MDataImage{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertImageToES(iData, mData)
+						insertImageToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData)
 					case "TEXT":
 						mData := MDataText{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertTextToES(iData, mData)
+						insertTextToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData)
 					}
+					insertTxToES(fmt.Sprintf("%d", sscData.AssetID), tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
 				}
 			}
 		}
 	}
 }
 
-func insertImageToES(iData IData, mData MDataImage) {
+func insertImageToES(assetID string, iData IData, mData MDataImage) {
 	elasticAlias := "ssc_images"
 	type DataImage struct {
 		IData
@@ -321,13 +327,13 @@ func insertImageToES(iData IData, mData MDataImage) {
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
 	digitalContentJSON, _ := json.Marshal(dataImage)
-	_, err := client.Index().Index(elasticAlias).Type("_doc").BodyString(string(digitalContentJSON)).Do(ctx)
+	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		panic(err.Error())
 	}
 }
 
-func insertTextToES(iData IData, mData MDataText) {
+func insertTextToES(assetID string, iData IData, mData MDataText) {
 	elasticAlias := "ssc_texts"
 	type DataImage struct {
 		IData
@@ -337,7 +343,7 @@ func insertTextToES(iData IData, mData MDataText) {
 	dataImage.IData = iData
 	dataImage.MDataText = mData
 	digitalContentJSON, _ := json.Marshal(dataImage)
-	_, err := client.Index().Index(elasticAlias).Type("_doc").BodyString(string(digitalContentJSON)).Do(ctx)
+	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		panic(err.Error())
 	}

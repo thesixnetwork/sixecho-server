@@ -64,14 +64,14 @@ func queryAssetID(blockNum uint32) string {
 }
 func excuteSSC(blockResp *eos.BlockResp) {
 	insertAssetToES(blockResp)
-	for _, tx := range blockResp.Transactions {
-		if tx.Transaction.Packed == nil {
-			continue
-		}
-		klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
-		assetID := queryAssetID(blockResp.BlockNum)
-		insertTxToES(assetID, tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
-	}
+	// for _, tx := range blockResp.Transactions {
+	// if tx.Transaction.Packed == nil {
+	// continue
+	// }
+	// klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+	// assetID := queryAssetID(blockResp.BlockNum)
+	// insertTxToES(assetID, tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
+	// }
 }
 func submitToKlaytn(sscTxID string, blockNum uint32) string {
 	type KlaytnBody struct {
