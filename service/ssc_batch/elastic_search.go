@@ -268,7 +268,7 @@ func insertTxToES(assetID string, sscTxID string, klaytnTxID string, blockNum ui
 	elasticAlias := "ssc_transactions"
 	type DigitalContent struct {
 		AssetID    string `json:"asset_id"`
-		BlockNum   int64  `json:"blokc_num"`
+		BlockNum   int64  `json:"block_num"`
 		KlaytnTxID string `json:"klaytn_tx_id"`
 	}
 	digitalContent := DigitalContent{
