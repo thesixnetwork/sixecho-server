@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
@@ -124,6 +125,14 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 									},
 									"updated_time":{
 											"type":"integer"
+									},
+									"created_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
+									},
+									"updated_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
 									}
 							}
 					}
@@ -181,6 +190,14 @@ func createSSCImageIndex(client *elastic.Client) {
 									},
 									"updated_time":{
 											"type":"integer"
+									},
+									"created_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
+									},
+									"updated_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
 									}
 							}
 					}
@@ -250,6 +267,14 @@ func createSSCTextIndex(client *elastic.Client) {
 									},
 									"updated_time":{
 											"type":"integer"
+									},
+									"created_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
+									},
+									"updated_at":{
+											"type":"date",
+											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
 									}
 							}
 					}
@@ -294,7 +319,7 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp int64) {
+func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp time.Time) {
 	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
@@ -310,6 +335,8 @@ func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetTyp
 		Authorization     []Authorization `json:"authorization"`
 		CreatedTime       int64           `json:"created_time"`
 		UpdatedTime       int64           `json:"updated_time"`
+		CreatedAt         string          `json:"created_at"`
+		UpdatedAt         string          `json:"updated_at"`
 	}
 
 	var authorizationStucts []Authorization
@@ -329,8 +356,10 @@ func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetTyp
 		TransactionAction: transactionAction,
 		TransactionStatus: transactionStatus,
 		Authorization:     authorizationStucts,
-		CreatedTime:       timeStamp,
-		UpdatedTime:       timeStamp,
+		CreatedTime:       timeStamp.Unix(),
+		UpdatedTime:       timeStamp.Unix(),
+		CreatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
+		UpdatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
 	}
 	digitalContentJSON, _ := json.Marshal(digitalContent)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(sscTxID).BodyString(string(digitalContentJSON)).Do(ctx)
@@ -341,7 +370,7 @@ func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetTyp
 
 func insertAssetToES(blockResp *eos.BlockResp) {
 	iData := IData{}
-	timeStamp := blockResp.Timestamp.Time.Unix()
+	timeStamp := blockResp.Timestamp.Time
 	for _, tx := range blockResp.Transactions {
 		fmt.Println(blockResp.BlockNum)
 		if tx.Transaction.Packed == nil {
@@ -352,7 +381,6 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 			for _, action := range data.Transaction.Actions {
 				fmt.Println(action.Account)
 				fmt.Println(action.Name)
-
 				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCData)
@@ -374,20 +402,24 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 	}
 }
 
-func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp int64) {
+func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp time.Time) {
 	elasticAlias := "ssc_images"
 	type DataImage struct {
 		IData
 		MDataImage
-		CreatedTime int64 `json:"created_time"`
-		UpdatedTime int64 `json:"updated_time"`
+		CreatedTime int64  `json:"created_time"`
+		UpdatedTime int64  `json:"updated_time"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
 	}
 	dataImage := DataImage{}
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
 	// dataImage.CreatedTime = int64(time.Now().Unix())
-	dataImage.CreatedTime = timeStamp
-	dataImage.UpdatedTime = timeStamp
+	dataImage.CreatedTime = timeStamp.Unix()
+	dataImage.UpdatedTime = timeStamp.Unix()
+	dataImage.CreatedAt = timeStamp.Format("2006-01-02 15:04:05")
+	dataImage.UpdatedAt = timeStamp.Format("2006-01-02 15:04:05")
 	digitalContentJSON, _ := json.Marshal(dataImage)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
@@ -395,19 +427,24 @@ func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp in
 	}
 }
 
-func insertTextToES(assetID string, iData IData, mData MDataText, timeStamp int64) {
+func insertTextToES(assetID string, iData IData, mData MDataText, timeStamp time.Time) {
 	elasticAlias := "ssc_texts"
 	type DataText struct {
 		IData
 		MDataText
-		CreatedTime int64 `json:"created_time"`
-		UpdatedTime int64 `json:"updated_time"`
+		CreatedTime int64  `json:"created_time"`
+		UpdatedTime int64  `json:"updated_time"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
 	}
 	dataText := DataText{}
 	dataText.IData = iData
 	dataText.MDataText = mData
-	dataText.CreatedTime = timeStamp
-	dataText.UpdatedTime = timeStamp
+	dataText.CreatedTime = timeStamp.Unix()
+	dataText.UpdatedTime = timeStamp.Unix()
+	dataText.CreatedAt = timeStamp.Format("2006-01-02 15:04:05")
+	dataText.UpdatedAt = timeStamp.Format("2006-01-02 15:04:05")
+
 	digitalContentJSON, _ := json.Marshal(dataText)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
