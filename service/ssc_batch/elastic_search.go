@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
@@ -106,6 +107,12 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 									},
 									"klaytn_tx_id":{
 											"type":"keyword"
+									},
+									"created_time":{
+											"type":"integer"
+									},
+									"updated_time":{
+											"type":"integer"
 									}
 							}
 					}
@@ -157,6 +164,12 @@ func createSSCImageIndex(client *elastic.Client) {
 									},
 									"preview_url":{
 										"type":"text"
+									},
+									"created_time":{
+											"type":"integer"
+									},
+									"updated_time":{
+											"type":"integer"
 									}
 							}
 					}
@@ -220,6 +233,12 @@ func createSSCTextIndex(client *elastic.Client) {
 									},
 									"publish_date":{
 										"type":"long"
+									},
+									"created_time":{
+											"type":"integer"
+									},
+									"updated_time":{
+											"type":"integer"
 									}
 							}
 					}
@@ -322,10 +341,14 @@ func insertImageToES(assetID string, iData IData, mData MDataImage) {
 	type DataImage struct {
 		IData
 		MDataImage
+		CreatedTime int64 `json:"created_time"`
+		UpdatedTime int64 `json:"updated_time"`
 	}
 	dataImage := DataImage{}
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
+	dataImage.CreatedTime = int64(time.Now().Unix())
+	dataImage.UpdatedTime = int64(time.Now().Unix())
 	digitalContentJSON, _ := json.Marshal(dataImage)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
@@ -335,14 +358,18 @@ func insertImageToES(assetID string, iData IData, mData MDataImage) {
 
 func insertTextToES(assetID string, iData IData, mData MDataText) {
 	elasticAlias := "ssc_texts"
-	type DataImage struct {
+	type DataText struct {
 		IData
 		MDataText
+		CreatedTime int64 `json:"created_time"`
+		UpdatedTime int64 `json:"updated_time"`
 	}
-	dataImage := DataImage{}
-	dataImage.IData = iData
-	dataImage.MDataText = mData
-	digitalContentJSON, _ := json.Marshal(dataImage)
+	dataText := DataText{}
+	dataText.IData = iData
+	dataText.MDataText = mData
+	dataText.CreatedTime = int64(time.Now().Unix())
+	dataText.UpdatedTime = int64(time.Now().Unix())
+	digitalContentJSON, _ := json.Marshal(dataText)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		panic(err.Error())
