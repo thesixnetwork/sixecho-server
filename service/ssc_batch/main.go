@@ -29,8 +29,13 @@ var (
 	region          = os.Getenv("AWS_REGION")
 	cred            = credentials.NewEnvCredentials()
 	signingClient   = v4.NewV4SigningClient(cred, region)
-	sess            = session.Must(session.NewSession())
-	client, _       = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
+	// sess            = session.Must(session.NewSession())
+	sess = session.Must(session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region: aws.String("ap-southeast-1"),
+		},
+	}))
+	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
 		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),

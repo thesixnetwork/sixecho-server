@@ -116,6 +116,9 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 									"transaction_status":{
 											"type":"keyword"
 									},
+									"authorization":{
+											"type":"nested"
+									},
 									"created_time":{
 											"type":"integer"
 									},
@@ -291,18 +294,33 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp int64) {
+func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp int64) {
 	elasticAlias := "ssc_transactions"
-	type DigitalContent struct {
-		AssetID           string `json:"asset_id"`
-		AssetType         string `json:"asset_type"`
-		BlockNum          int64  `json:"block_num"`
-		KlaytnTxID        string `json:"klaytn_tx_id"`
-		TransactionAction string `json:"transaction_action"`
-		TransactionStatus string `json:"transaction_status"`
-		CreatedTime       int64  `json:"created_time"`
-		UpdatedTime       int64  `json:"updated_time"`
+	type Authorization struct {
+		Actor      string `json:"actor"`
+		Permission string `json:"permission"`
 	}
+	type DigitalContent struct {
+		AssetID           string          `json:"asset_id"`
+		AssetType         string          `json:"asset_type"`
+		BlockNum          int64           `json:"block_num"`
+		KlaytnTxID        string          `json:"klaytn_tx_id"`
+		TransactionAction string          `json:"transaction_action"`
+		TransactionStatus string          `json:"transaction_status"`
+		Authorization     []Authorization `json:"authorization"`
+		CreatedTime       int64           `json:"created_time"`
+		UpdatedTime       int64           `json:"updated_time"`
+	}
+
+	var authorizationStucts []Authorization
+	for _, ele := range authorizations {
+		tmp := Authorization{
+			Actor:      string(ele.Actor),
+			Permission: string(ele.Permission),
+		}
+		authorizationStucts = append(authorizationStucts, tmp)
+	}
+
 	digitalContent := DigitalContent{
 		AssetID:           assetID,
 		AssetType:         assetType,
@@ -310,6 +328,7 @@ func insertTxToES(assetID string, assetType string, sscTxID string, transactionA
 		BlockNum:          int64(blockNum),
 		TransactionAction: transactionAction,
 		TransactionStatus: transactionStatus,
+		Authorization:     authorizationStucts,
 		CreatedTime:       timeStamp,
 		UpdatedTime:       timeStamp,
 	}
@@ -348,7 +367,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						json.Unmarshal([]byte(sscData.MData), &mData)
 						insertTextToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					}
-					insertTxToES(fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
+					insertTxToES(action.Authorization, fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 				}
 			}
 		}
