@@ -286,14 +286,18 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 func insertTxToES(assetID string, sscTxID string, klaytnTxID string, blockNum uint32) {
 	elasticAlias := "ssc_transactions"
 	type DigitalContent struct {
-		AssetID    string `json:"asset_id"`
-		BlockNum   int64  `json:"block_num"`
-		KlaytnTxID string `json:"klaytn_tx_id"`
+		AssetID     string `json:"asset_id"`
+		BlockNum    int64  `json:"block_num"`
+		KlaytnTxID  string `json:"klaytn_tx_id"`
+		CreatedTime int64  `json:"created_time"`
+		UpdatedTime int64  `json:"updated_time"`
 	}
 	digitalContent := DigitalContent{
-		AssetID:    assetID,
-		KlaytnTxID: klaytnTxID,
-		BlockNum:   int64(blockNum),
+		AssetID:     assetID,
+		KlaytnTxID:  klaytnTxID,
+		BlockNum:    int64(blockNum),
+		CreatedTime: int64(time.Now().Unix()),
+		UpdatedTime: int64(time.Now().Unix()),
 	}
 	digitalContentJSON, _ := json.Marshal(digitalContent)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(sscTxID).BodyString(string(digitalContentJSON)).Do(ctx)

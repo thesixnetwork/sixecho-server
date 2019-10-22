@@ -109,7 +109,7 @@ func submitToKlaytn(sscTxID string, blockNum uint32) string {
 
 func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 	go func() {
-		for range time.Tick(time.Second * 3) {
+		for range time.Tick(time.Second * 5) {
 			updateBlockNumToES()
 		}
 	}()
