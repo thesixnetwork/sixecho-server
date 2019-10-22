@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
@@ -102,10 +101,19 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 									"asset_id":{
 											"type":"keyword"
 									},
+									"asset_type":{
+											"type":"keyword"
+									},
 									"block_num":{
 											"type":"long"
 									},
 									"klaytn_tx_id":{
+											"type":"keyword"
+									},
+									"transaction_action":{
+											"type":"keyword"
+									},
+									"transaction_status":{
 											"type":"keyword"
 									},
 									"created_time":{
@@ -283,21 +291,27 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(assetID string, sscTxID string, klaytnTxID string, blockNum uint32) {
+func insertTxToES(assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp int64) {
 	elasticAlias := "ssc_transactions"
 	type DigitalContent struct {
-		AssetID     string `json:"asset_id"`
-		BlockNum    int64  `json:"block_num"`
-		KlaytnTxID  string `json:"klaytn_tx_id"`
-		CreatedTime int64  `json:"created_time"`
-		UpdatedTime int64  `json:"updated_time"`
+		AssetID           string `json:"asset_id"`
+		AssetType         string `json:"asset_type"`
+		BlockNum          int64  `json:"block_num"`
+		KlaytnTxID        string `json:"klaytn_tx_id"`
+		TransactionAction string `json:"transaction_action"`
+		TransactionStatus string `json:"transaction_status"`
+		CreatedTime       int64  `json:"created_time"`
+		UpdatedTime       int64  `json:"updated_time"`
 	}
 	digitalContent := DigitalContent{
-		AssetID:     assetID,
-		KlaytnTxID:  klaytnTxID,
-		BlockNum:    int64(blockNum),
-		CreatedTime: int64(time.Now().Unix()),
-		UpdatedTime: int64(time.Now().Unix()),
+		AssetID:           assetID,
+		AssetType:         assetType,
+		KlaytnTxID:        klaytnTxID,
+		BlockNum:          int64(blockNum),
+		TransactionAction: transactionAction,
+		TransactionStatus: transactionStatus,
+		CreatedTime:       timeStamp,
+		UpdatedTime:       timeStamp,
 	}
 	digitalContentJSON, _ := json.Marshal(digitalContent)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(sscTxID).BodyString(string(digitalContentJSON)).Do(ctx)
@@ -308,6 +322,7 @@ func insertTxToES(assetID string, sscTxID string, klaytnTxID string, blockNum ui
 
 func insertAssetToES(blockResp *eos.BlockResp) {
 	iData := IData{}
+	timeStamp := blockResp.Timestamp.Time.Unix()
 	for _, tx := range blockResp.Transactions {
 		fmt.Println(blockResp.BlockNum)
 		if tx.Transaction.Packed == nil {
@@ -327,20 +342,20 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					case "IMAGE":
 						mData := MDataImage{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertImageToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData)
+						insertImageToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					case "TEXT":
 						mData := MDataText{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertTextToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData)
+						insertTextToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					}
-					insertTxToES(fmt.Sprintf("%d", sscData.AssetID), tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
+					insertTxToES(fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 				}
 			}
 		}
 	}
 }
 
-func insertImageToES(assetID string, iData IData, mData MDataImage) {
+func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp int64) {
 	elasticAlias := "ssc_images"
 	type DataImage struct {
 		IData
@@ -351,8 +366,9 @@ func insertImageToES(assetID string, iData IData, mData MDataImage) {
 	dataImage := DataImage{}
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
-	dataImage.CreatedTime = int64(time.Now().Unix())
-	dataImage.UpdatedTime = int64(time.Now().Unix())
+	// dataImage.CreatedTime = int64(time.Now().Unix())
+	dataImage.CreatedTime = timeStamp
+	dataImage.UpdatedTime = timeStamp
 	digitalContentJSON, _ := json.Marshal(dataImage)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
@@ -360,7 +376,7 @@ func insertImageToES(assetID string, iData IData, mData MDataImage) {
 	}
 }
 
-func insertTextToES(assetID string, iData IData, mData MDataText) {
+func insertTextToES(assetID string, iData IData, mData MDataText, timeStamp int64) {
 	elasticAlias := "ssc_texts"
 	type DataText struct {
 		IData
@@ -371,8 +387,8 @@ func insertTextToES(assetID string, iData IData, mData MDataText) {
 	dataText := DataText{}
 	dataText.IData = iData
 	dataText.MDataText = mData
-	dataText.CreatedTime = int64(time.Now().Unix())
-	dataText.UpdatedTime = int64(time.Now().Unix())
+	dataText.CreatedTime = timeStamp
+	dataText.UpdatedTime = timeStamp
 	digitalContentJSON, _ := json.Marshal(dataText)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
