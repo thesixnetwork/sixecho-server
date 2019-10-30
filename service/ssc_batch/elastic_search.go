@@ -188,7 +188,7 @@ func createSSCImageIndex(client *elastic.Client) {
 											"type":"keyword"
 									},
 									"echo_title":{
-										"type":"text"
+										"type":"keyword"
 									},
 									"echo_image_url":{
 										"type":"text"
@@ -209,8 +209,8 @@ func createSSCImageIndex(client *elastic.Client) {
 										"type":"keyword"
 									},
 									"echo_tags":{
-										"type":"nested"
-									}
+										"type":"keyword"
+									},
 									"created_time":{
 											"type":"integer"
 									},
@@ -271,7 +271,7 @@ func createSSCTextIndex(client *elastic.Client) {
 											"type":"keyword"
 									},
 									"echo_title":{
-										"type":"text"
+										"type":"keyword"
 									},
 									"echo_image_url":{
 										"type":"text"
@@ -292,8 +292,8 @@ func createSSCTextIndex(client *elastic.Client) {
 										"type":"keyword"
 									},
 									"echo_tags":{
-										"type":"nested"
-									}
+										"type":"keyword"
+									},
 									"created_time":{
 											"type":"integer"
 									},
