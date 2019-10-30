@@ -30,18 +30,26 @@ type IData struct {
 
 //MDataImage struct
 type MDataImage struct {
-	Author     string `json:"author"`
-	PreviewURL string `json:"preview_url"`
+	EchoTitle      string   `json:"echo_title"`
+	EchoImageURL   string   `json:"echo_image_url"`
+	EchoParentID   string   `json:"echo_parent_id"`
+	EchoOwner      string   `json:"echo_owner"`
+	EchoRefOwner   string   `json:"echo_ref_owner"`
+	EchoCreator    string   `json:"echo_creator"`
+	EchoRefCreator string   `json:"echo_ref_creator"`
+	EchoTags       []string `json:"echo_tags"`
 }
 
 //MDataText struct
 type MDataText struct {
-	Author          string `json:"author"`
-	Language        string `json:"language"`
-	PaperBack       string `json:"paperback"`
-	PublishDate     int64  `json:"publish_date"`
-	Title           string `json:"title"`
-	CountryOfOrigin string `json:"country_of_origin"`
+	EchoTitle      string   `json:"echo_title"`
+	EchoImageURL   string   `json:"echo_image_url"`
+	EchoParentID   string   `json:"echo_parent_id"`
+	EchoOwner      string   `json:"echo_owner"`
+	EchoRefOwner   string   `json:"echo_ref_owner"`
+	EchoCreator    string   `json:"echo_creator"`
+	EchoRefCreator string   `json:"echo_ref_creator"`
+	EchoTags       []string `json:"echo_tags"`
 }
 
 func createSSCBlockNumIndex(client *elastic.Client) {
@@ -179,12 +187,30 @@ func createSSCImageIndex(client *elastic.Client) {
 									"size_file":{
 											"type":"keyword"
 									},
-									"author":{
-										"type":"keyword"
-									},
-									"preview_url":{
+									"echo_title":{
 										"type":"text"
 									},
+									"echo_image_url":{
+										"type":"text"
+									},
+									"echo_creator":{
+										"type":"keyword"
+									},
+									"echo_parent_id":{
+										"type":"keyword"
+									},
+									"echo_owner":{
+										"type":"keyword"
+									},
+									"echo_ref_owner":{
+										"type":"keyword"
+									},
+									"echo_ref_creator":{
+										"type":"keyword"
+									},
+									"echo_tags":{
+										"type":"nested"
+									}
 									"created_time":{
 											"type":"integer"
 									},
@@ -244,24 +270,30 @@ func createSSCTextIndex(client *elastic.Client) {
 									"size_file":{
 											"type":"keyword"
 									},
-									"author":{
+									"echo_title":{
+										"type":"text"
+									},
+									"echo_image_url":{
+										"type":"text"
+									},
+									"echo_creator":{
 										"type":"keyword"
 									},
-									"title":{
+									"echo_parent_id":{
 										"type":"keyword"
 									},
-									"country_of_origin":{
+									"echo_owner":{
 										"type":"keyword"
 									},
-									"language":{
+									"echo_ref_owner":{
 										"type":"keyword"
 									},
-									"paperback":{
-										"type":"long"
+									"echo_ref_creator":{
+										"type":"keyword"
 									},
-									"publish_date":{
-										"type":"long"
-									},
+									"echo_tags":{
+										"type":"nested"
+									}
 									"created_time":{
 											"type":"integer"
 									},
