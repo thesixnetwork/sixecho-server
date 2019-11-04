@@ -9,15 +9,13 @@ import (
 	"github.com/olivere/elastic"
 )
 
-//SSCData struct
-type SSCData struct {
-	AssetID  int64
-	Author   eos.Name
-	Category eos.Name
-	Owner    eos.Name
-	IData    string
-	MData    string
-	AA       string
+//SSCDataCreate struct
+type SSCDataCreate struct {
+	AssetID int64
+	Creator eos.Name
+	Owner   eos.Name
+	IData   string
+	MData   string
 }
 
 //IData struct
@@ -107,6 +105,18 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 		"mappings": {		
 			"_doc": {
 							"properties": {
+									"from":{
+											"type":"keyword"
+									},	
+									"from_user":{
+											"type":"keyword"
+									},	
+									"to":{
+											"type":"keyword"
+									},	
+									"to_user":{
+											"type":"keyword"
+									},	
 									"asset_id":{
 											"type":"keyword"
 									},
@@ -186,6 +196,12 @@ func createSSCImageIndex(client *elastic.Client) {
 									},
 									"size_file":{
 											"type":"keyword"
+									},
+									"creator":{
+										"type":"keyword"
+									},
+									"owner":{
+										"type":"keyword"
 									},
 									"echo_title":{
 										"type":"keyword"
@@ -270,6 +286,12 @@ func createSSCTextIndex(client *elastic.Client) {
 									"size_file":{
 											"type":"keyword"
 									},
+									"creator":{
+										"type":"keyword"
+									},
+									"owner":{
+										"type":"keyword"
+									},
 									"echo_title":{
 										"type":"keyword"
 									},
@@ -351,7 +373,7 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp time.Time) {
+func insertTxToES(authorizations []eos.PermissionLevel, from, to, fromUser, toUser, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp time.Time) {
 	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
@@ -365,6 +387,10 @@ func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetTyp
 		TransactionAction string          `json:"transaction_action"`
 		TransactionStatus string          `json:"transaction_status"`
 		Authorization     []Authorization `json:"authorization"`
+		From              string          `json:"from"`
+		To                string          `json:"to"`
+		FromUser          string          `json:"from_user"`
+		ToUser            string          `json:"to_user"`
 		CreatedTime       int64           `json:"created_time"`
 		UpdatedTime       int64           `json:"updated_time"`
 		CreatedAt         string          `json:"created_at"`
@@ -390,6 +416,10 @@ func insertTxToES(authorizations []eos.PermissionLevel, assetID string, assetTyp
 		Authorization:     authorizationStucts,
 		CreatedTime:       timeStamp.Unix(),
 		UpdatedTime:       timeStamp.Unix(),
+		From:              from,
+		To:                to,
+		FromUser:          fromUser,
+		ToUser:            toUser,
 		CreatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
 		UpdatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
 	}
@@ -414,31 +444,40 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 				fmt.Println(action.Account)
 				fmt.Println(action.Name)
 				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+				var fromUser = ""
+				var toUser = ""
 				if action.Account == "assets" && action.Name == "create" {
-					sscData := action.Data.(*SSCData)
+					sscData := action.Data.(*SSCDataCreate)
 					json.Unmarshal([]byte(sscData.IData), &iData)
 					switch typeAsset := iData.Type; typeAsset {
 					case "IMAGE":
 						mData := MDataImage{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertImageToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
+						fromUser = mData.EchoRefOwner
+						toUser = mData.EchoRefOwner
+						insertImageToES(string(sscData.Creator), string(sscData.Owner), fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					case "TEXT":
 						mData := MDataText{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						insertTextToES(fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
+						fromUser = mData.EchoRefOwner
+						toUser = mData.EchoRefOwner
+						insertTextToES(string(sscData.Creator), string(sscData.Owner), fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					}
-					insertTxToES(action.Authorization, fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
+
+					insertTxToES(action.Authorization, string(sscData.Creator), string(sscData.Creator), fromUser, toUser, fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 				}
 			}
 		}
 	}
 }
 
-func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp time.Time) {
+func insertImageToES(creator, owner, assetID string, iData IData, mData MDataImage, timeStamp time.Time) {
 	elasticAlias := "ssc_images"
 	type DataImage struct {
 		IData
 		MDataImage
+		Creator     string `json:"creator"`
+		Owner       string `json:"owner"`
 		CreatedTime int64  `json:"created_time"`
 		UpdatedTime int64  `json:"updated_time"`
 		CreatedAt   string `json:"created_at"`
@@ -447,7 +486,8 @@ func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp ti
 	dataImage := DataImage{}
 	dataImage.IData = iData
 	dataImage.MDataImage = mData
-	// dataImage.CreatedTime = int64(time.Now().Unix())
+	dataImage.Creator = creator
+	dataImage.Owner = owner
 	dataImage.CreatedTime = timeStamp.Unix()
 	dataImage.UpdatedTime = timeStamp.Unix()
 	dataImage.CreatedAt = timeStamp.Format("2006-01-02 15:04:05")
@@ -459,11 +499,13 @@ func insertImageToES(assetID string, iData IData, mData MDataImage, timeStamp ti
 	}
 }
 
-func insertTextToES(assetID string, iData IData, mData MDataText, timeStamp time.Time) {
+func insertTextToES(creator, owner, assetID string, iData IData, mData MDataText, timeStamp time.Time) {
 	elasticAlias := "ssc_texts"
 	type DataText struct {
 		IData
 		MDataText
+		Creator     string `json:"creator"`
+		Owner       string `json:"owner"`
 		CreatedTime int64  `json:"created_time"`
 		UpdatedTime int64  `json:"updated_time"`
 		CreatedAt   string `json:"created_at"`
@@ -472,6 +514,8 @@ func insertTextToES(assetID string, iData IData, mData MDataText, timeStamp time
 	dataText := DataText{}
 	dataText.IData = iData
 	dataText.MDataText = mData
+	dataText.Creator = creator
+	dataText.Owner = owner
 	dataText.CreatedTime = timeStamp.Unix()
 	dataText.UpdatedTime = timeStamp.Unix()
 	dataText.CreatedAt = timeStamp.Format("2006-01-02 15:04:05")

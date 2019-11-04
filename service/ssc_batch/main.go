@@ -156,7 +156,7 @@ func main() {
 	createIndexElastic()
 	block := make(chan *eos.BlockResp)
 	blockNum := make(chan uint32)
-	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCData{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCDataCreate{})
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
