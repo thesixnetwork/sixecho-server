@@ -426,6 +426,7 @@ func insertTxToES(authorizations []eos.PermissionLevel, from, to, fromUser, toUs
 	digitalContentJSON, _ := json.Marshal(digitalContent)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(sscTxID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
+		fmt.Println("Error insert transaction to ES")
 		panic(err.Error())
 	}
 }
@@ -441,8 +442,8 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 		data, _ := tx.Transaction.Packed.Unpack()
 		if len(data.Transaction.Actions) != 0 {
 			for _, action := range data.Transaction.Actions {
-				fmt.Println(action.Account)
-				fmt.Println(action.Name)
+				// fmt.Println(action.Account)
+				// fmt.Println(action.Name)
 				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
 				var fromUser = ""
 				var toUser = ""
@@ -495,6 +496,7 @@ func insertImageToES(creator, owner, assetID string, iData IData, mData MDataIma
 	digitalContentJSON, _ := json.Marshal(dataImage)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
+		fmt.Println("Error Insert Image To ES : ")
 		panic(err.Error())
 	}
 }
@@ -524,6 +526,7 @@ func insertTextToES(creator, owner, assetID string, iData IData, mData MDataText
 	digitalContentJSON, _ := json.Marshal(dataText)
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
+		fmt.Println("Error Insert Text To ES : ")
 		panic(err.Error())
 	}
 }

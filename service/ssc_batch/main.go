@@ -60,7 +60,7 @@ func updateBlockNumToES() {
 	docJSON, _ := json.Marshal(doc)
 	_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("Update Block Error : " + " " + err.Error())
 		// panic(err.Error())
 	}
 }
@@ -104,6 +104,7 @@ func submitToKlaytn(sscTxID string, blockNum uint32) string {
 	}
 	result, err := lambdaClient.Invoke(input)
 	if err != nil {
+		fmt.Println("Submit Klaytn Error:")
 		panic(err.Error())
 	}
 	fmt.Println(string(result.Payload))
