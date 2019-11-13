@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -16,6 +17,22 @@ type SSCDataCreate struct {
 	Owner   eos.Name
 	IData   string
 	MData   string
+}
+
+//SSCDataTransfer struct
+type SSCDataTransfer struct {
+	From        eos.Name `json:"from"`
+	To          eos.Name `json:"to"`
+	FromJSONStr string   `json:"from_json_str"`
+	ToJSONStr   string   `json:"to_json_str"`
+	AssetID     int64    `json:"asset_id"`
+	Memo        string   `json:"memo"`
+}
+
+//EchoOwner stuct
+type EchoOwner struct {
+	EchoOwner    string `json:"echo_owner"`
+	EchoRefOwner string `json:"echo_ref_owner"`
 }
 
 //IData struct
@@ -109,13 +126,13 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 											"type":"keyword"
 									},	
 									"from_user":{
-											"type":"keyword"
+											"type":"nested"
 									},	
 									"to":{
 											"type":"keyword"
 									},	
 									"to_user":{
-											"type":"keyword"
+											"type":"nested"
 									},	
 									"asset_id":{
 											"type":"keyword"
@@ -373,7 +390,7 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(authorizations []eos.PermissionLevel, from, to, fromUser, toUser, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp time.Time) {
+func insertTxToES(authorizations []eos.PermissionLevel, from, to string, fromUser, toUser EchoOwner, assetID string, assetType string, sscTxID string, transactionAction string, transactionStatus string, klaytnTxID string, blockNum uint32, timeStamp time.Time) {
 	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
@@ -389,8 +406,8 @@ func insertTxToES(authorizations []eos.PermissionLevel, from, to, fromUser, toUs
 		Authorization     []Authorization `json:"authorization"`
 		From              string          `json:"from"`
 		To                string          `json:"to"`
-		FromUser          string          `json:"from_user"`
-		ToUser            string          `json:"to_user"`
+		FromUser          EchoOwner       `json:"from_user"`
+		ToUser            EchoOwner       `json:"to_user"`
 		CreatedTime       int64           `json:"created_time"`
 		UpdatedTime       int64           `json:"updated_time"`
 		CreatedAt         string          `json:"created_at"`
@@ -440,13 +457,14 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 			continue
 		}
 		data, _ := tx.Transaction.Packed.Unpack()
+		fmt.Printf("%#v\n", data)
 		if len(data.Transaction.Actions) != 0 {
 			for _, action := range data.Transaction.Actions {
 				// fmt.Println(action.Account)
 				// fmt.Println(action.Name)
 				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
-				var fromUser = ""
-				var toUser = ""
+				fromUser := EchoOwner{}
+				toUser := EchoOwner{}
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCDataCreate)
 					json.Unmarshal([]byte(sscData.IData), &iData)
@@ -454,21 +472,39 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					case "IMAGE":
 						mData := MDataImage{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						fromUser = mData.EchoRefOwner
-						toUser = mData.EchoRefOwner
+						// fromUser.EchoRefOwner = mData.EchoRefOwner
+						toUser.EchoRefOwner = mData.EchoRefOwner
+						toUser.EchoOwner = mData.EchoOwner
 						insertImageToES(string(sscData.Creator), string(sscData.Owner), fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					case "TEXT":
 						mData := MDataText{}
 						json.Unmarshal([]byte(sscData.MData), &mData)
-						fromUser = mData.EchoRefOwner
-						toUser = mData.EchoRefOwner
+						toUser.EchoRefOwner = mData.EchoRefOwner
+						toUser.EchoOwner = mData.EchoOwner
 						insertTextToES(string(sscData.Creator), string(sscData.Owner), fmt.Sprintf("%d", sscData.AssetID), iData, mData, timeStamp)
 					}
-
 					insertTxToES(action.Authorization, string(sscData.Creator), string(sscData.Creator), fromUser, toUser, fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
+				} else if action.Account == "assets" && action.Name == "transfer" {
+					sscDataTransfer := action.Data.(*SSCDataTransfer)
+					updateAssetToEs(sscDataTransfer)
+					json.Unmarshal([]byte(sscDataTransfer.FromJSONStr), &fromUser)
+					json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &toUser)
+					insertTxToES(action.Authorization, string(sscDataTransfer.From), string(sscDataTransfer.To), fromUser, toUser, fmt.Sprintf("%d", sscDataTransfer.AssetID), "", tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 				}
 			}
 		}
+	}
+}
+
+func updateAssetToEs(sscDataTransfer *SSCDataTransfer) {
+	query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
+	var userTo EchoOwner
+	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
+	strScript := fmt.Sprintf("ctx._source.owner = '%s'; ctx._source.echo_owner = '%s'; ctx._source.echo_ref_owner = '%s'", sscDataTransfer.To, userTo.EchoOwner, userTo.EchoRefOwner)
+	inScript := elastic.NewScriptInline(strScript).Lang("painless")
+	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
+	if err != nil {
+		panic(err.Error())
 	}
 }
 

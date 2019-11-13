@@ -69,7 +69,7 @@ func queryAssetID(blockNum uint32) string {
 	return uid.String()
 }
 func excuteSSC(blockResp *eos.BlockResp) {
-	insertAssetToES(blockResp)
+	go insertAssetToES(blockResp)
 	// for _, tx := range blockResp.Transactions {
 	// if tx.Transaction.Packed == nil {
 	// continue
@@ -80,6 +80,12 @@ func excuteSSC(blockResp *eos.BlockResp) {
 	// }
 }
 func submitToKlaytn(sscTxID string, blockNum uint32) string {
+
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		Config: aws.Config{
+			Region: aws.String("ap-southeast-1"),
+		},
+	}))
 	type KlaytnBody struct {
 		Hash        string `json:"hash"`
 		BlockNumber string `json:"block_number"`
@@ -158,6 +164,7 @@ func main() {
 	block := make(chan *eos.BlockResp)
 	blockNum := make(chan uint32)
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCDataCreate{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("transfer"), SSCDataTransfer{})
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
