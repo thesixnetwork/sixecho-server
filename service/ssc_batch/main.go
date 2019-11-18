@@ -165,6 +165,7 @@ func main() {
 	blockNum := make(chan uint32)
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCDataCreate{})
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("transfer"), SSCDataTransfer{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("transfer"), SSCDataUpdate{})
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
