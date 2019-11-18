@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -411,7 +412,7 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *eos.Action, sscData *SSCDataCreate, iData *IData, klaytnTxID string, fromto FromToTransaction) {
+func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *eos.Action, assetID string, iData *IData, klaytnTxID string, fromto FromToTransaction) {
 	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
@@ -442,9 +443,9 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 		}
 		authorizationStucts = append(authorizationStucts, tmp)
 	}
-	var assetType, assetID string
+	var assetType string
 	assetType = iData.Type
-	assetID = fmt.Sprintf("%d", sscData.AssetID)
+	// assetID = fmt.Sprintf("%d", sscData.AssetID)
 	if assetType == "" {
 		assetType = getAssetType(assetID)
 	}
@@ -480,11 +481,8 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 			continue
 		}
 		data, _ := tx.Transaction.Packed.Unpack()
-		fmt.Printf("%#v\n", data)
 		if len(data.Transaction.Actions) != 0 {
 			for _, action := range data.Transaction.Actions {
-				// fmt.Println(action.Account)
-				// fmt.Println(action.Name)
 				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCDataCreate)
@@ -495,7 +493,6 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					case "TEXT":
 						insertTextToES(blockResp, sscData, &iData)
 					}
-					// insertTxToES(action.Authorization, string(sscData.Creator), string(sscData.Creator), &fromUser, &toUser, fmt.Sprintf("%d", sscData.AssetID), iData.Type, tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 					var refInfo *RefInfo
 					json.Unmarshal([]byte(sscData.RefInfo), &refInfo)
 					fromto := FromToTransaction{
@@ -505,14 +502,21 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						ToUser:      &refInfo.EchoOwner,
 					}
 
-					insertTxToES(blockResp, tx, action, sscData, &iData, klaytnTxID, fromto)
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto)
 
 				} else if action.Account == "assets" && action.Name == "transfer" {
-					// sscDataTransfer := action.Data.(*SSCDataTransfer)
-					// updateAssetToEs(sscDataTransfer)
-					// json.Unmarshal([]byte(sscDataTransfer.FromJSONStr), &fromUser)
-					// json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &toUser)
-					// insertTxToES(action.Authorization, string(sscDataTransfer.From), string(sscDataTransfer.To), &fromUser, &toUser, fmt.Sprintf("%d", sscDataTransfer.AssetID), "", tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
+					sscDataTransfer := action.Data.(*SSCDataTransfer)
+					updateAssetToEs(sscDataTransfer)
+					var fromUser, toUser *EchoOwner
+					json.Unmarshal([]byte(sscDataTransfer.FromJSONStr), &fromUser)
+					json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &toUser)
+					fromto := FromToTransaction{
+						SubmittedBy: string(sscDataTransfer.From),
+						Platform:    string(sscDataTransfer.To),
+						FromUser:    fromUser,
+						ToUser:      toUser,
+					}
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscDataTransfer.AssetID), &iData, klaytnTxID, fromto)
 				} else if action.Account == "assets" && action.Name == "update" {
 					// sscDataUpdate := action.Data.(*SSCDataUpdate)
 					// insertTxToES(action.Authorization, "", "", nil, nil, fmt.Sprintf("%d", sscDataUpdate.AssetID), "", tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
@@ -525,15 +529,15 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 }
 
 func updateAssetToEs(sscDataTransfer *SSCDataTransfer) {
-	// query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
-	// var userTo EchoOwner
-	// json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
-	// strScript := fmt.Sprintf("ctx._source.owner = '%s'; ctx._source.echo_owner = '%s'; ctx._source.echo_ref_owner = '%s'", sscDataTransfer.To, userTo.EchoOwner, userTo.EchoRefOwner)
-	// inScript := elastic.NewScriptInline(strScript).Lang("painless")
-	// _, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
-	// if err != nil {
-	// panic(err.Error())
-	// }
+	query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
+	var userTo EchoOwner
+	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
+	strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner)
+	inScript := elastic.NewScriptInline(strScript).Lang("painless")
+	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
@@ -550,13 +554,13 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 		*DetailInfoImage
 		*CommonInfo
 		*RefInfo
-		Platform    string  `json:"platform"`
-		SubmittedBy string  `json:"submitted_by"`
-		MData       *string `json:"mdata,omitempty"`
-		CreatedTime int64   `json:"created_time"`
-		UpdatedTime int64   `json:"updated_time"`
-		CreatedAt   string  `json:"created_at"`
-		UpdatedAt   string  `json:"updated_at"`
+		Platform    string `json:"platform"`
+		SubmittedBy string `json:"submitted_by"`
+		MData       string `json:"mdata,omitempty"`
+		CreatedTime int64  `json:"created_time"`
+		UpdatedTime int64  `json:"updated_time"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
 	}
 	var detailInfo *DetailInfoImage
 	var refInfo *RefInfo
@@ -570,6 +574,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 	timeStamp := blockResp.Timestamp.Time
 	dataImage.DetailInfoImage = detailInfo
 	dataImage.RefInfo = refInfo
+	dataImage.MData = sscData.MData
 	dataImage.Platform = string(sscData.SubmittedBy)
 	dataImage.SubmittedBy = string(sscData.SubmittedBy)
 	dataImage.CreatedTime = timeStamp.Unix()
@@ -586,20 +591,28 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 
 func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
 	elasticAlias := TextAlias
+	type DetailInfoText struct {
+		ISBN          string `json:"isbn,omitempty"`
+		Author        string `json:"author,omitempty"`
+		Publisher     string `json:"publisher,omitempty"`
+		PublishedDate string `json:"published_date,omitempty"`
+		Language      string `json:"language,omitempty"`
+		NumberOfpages string `json:"number_of_pages,omitempty"`
+	}
 	type DataText struct {
 		*IData
-		*DetailInfo
+		*DetailInfoText
 		*CommonInfo
 		*RefInfo
-		Platform    string  `json:"platform"`
-		SubmittedBy string  `json:"submitted_by"`
-		MData       *string `json:"mdata,omitempty"`
-		CreatedTime int64   `json:"created_time"`
-		UpdatedTime int64   `json:"updated_time"`
-		CreatedAt   string  `json:"created_at"`
-		UpdatedAt   string  `json:"updated_at"`
+		Platform    string `json:"platform"`
+		SubmittedBy string `json:"submitted_by"`
+		MData       string `json:"mdata,omitempty"`
+		CreatedTime int64  `json:"created_time"`
+		UpdatedTime int64  `json:"updated_time"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
 	}
-	var detailInfo *DetailInfo
+	var detailInfo *DetailInfoText
 	var refInfo *RefInfo
 	var commonInfo *CommonInfo
 	json.Unmarshal([]byte(sscData.DetailInfo), &detailInfo)
@@ -609,9 +622,11 @@ func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IDa
 	assetID := fmt.Sprintf("%d", sscData.AssetID)
 	timeStamp := blockResp.Timestamp.Time
 	dataText.IData = iData
-	dataText.DetailInfo = detailInfo
+	dataText.DetailInfoText = detailInfo
 	dataText.CommonInfo = commonInfo
 	dataText.RefInfo = refInfo
+	fmt.Printf("%#v\n", sscData.MData)
+	dataText.MData = sscData.MData
 	dataText.Platform = string(sscData.SubmittedBy)
 	dataText.SubmittedBy = string(sscData.SubmittedBy)
 	dataText.CreatedTime = timeStamp.Unix()
