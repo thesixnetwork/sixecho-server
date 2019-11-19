@@ -69,7 +69,7 @@ func queryAssetID(blockNum uint32) string {
 	return uid.String()
 }
 func excuteSSC(blockResp *eos.BlockResp) {
-	go insertAssetToES(blockResp)
+	insertAssetToES(blockResp)
 	// for _, tx := range blockResp.Transactions {
 	// if tx.Transaction.Packed == nil {
 	// continue
@@ -165,9 +165,9 @@ func main() {
 	blockNum := make(chan uint32)
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCDataCreate{})
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("transfer"), SSCDataTransfer{})
-	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setmdata"), SSCDataUpdate{})
-	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setdinfo"), SSCDataUpdate{})
-	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("updatecinfo"), SSCDataUpdate{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setmdata"), SSCSetMdata{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setdinfo"), SSCSetDInfo{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("updatecinfo"), SSCUpdateCInfo{})
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/olivere/elastic"
 )
@@ -31,4 +32,63 @@ func getAssetType(assetID string) string {
 		break
 	}
 	return idata.Type
+}
+
+func setDInfo(sscSetDInfo *SSCSetDInfo) {
+	assetID := fmt.Sprintf("%d", sscSetDInfo.AssetID)
+	assetType := getAssetType(assetID)
+	var err error
+	var elasticAlias string
+	switch assetType {
+	case "IMAGE":
+		elasticAlias = ImageAlias
+		var detailInfoImage DetailInfoImage
+		json.Unmarshal([]byte(sscSetDInfo.DetailInfo), &detailInfoImage)
+		_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(detailInfoImage).Do(context.Background())
+	case "TEXT":
+		elasticAlias = TextAlias
+		var detailInfoText DetailInfoText
+		json.Unmarshal([]byte(sscSetDInfo.DetailInfo), &detailInfoText)
+		_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(detailInfoText).Do(context.Background())
+	}
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func updateCInfo(sscUpdateCinfo *SSCUpdateCInfo) {
+	assetID := fmt.Sprintf("%d", sscUpdateCinfo.AssetID)
+	assetType := getAssetType(assetID)
+	var err error
+	var elasticAlias string
+	switch assetType {
+	case "IMAGE":
+		elasticAlias = ImageAlias
+	case "TEXT":
+		elasticAlias = TextAlias
+	}
+	var commonInfo CommonInfo
+	json.Unmarshal([]byte(sscUpdateCinfo.DetailInfo), &commonInfo)
+	_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(commonInfo).Do(context.Background())
+	if err != nil {
+		panic(err.Error())
+	}
+}
+func setMdata(sscSetMdata *SSCSetMdata) {
+	assetID := fmt.Sprintf("%d", sscSetMdata.AssetID)
+	assetType := getAssetType(assetID)
+	var err error
+	var elasticAlias string
+	switch assetType {
+	case "IMAGE":
+		elasticAlias = ImageAlias
+	case "TEXT":
+		elasticAlias = TextAlias
+	}
+	_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(map[string]interface{}{
+		"mdata": sscSetMdata.DetailInfo,
+	}).Do(context.Background())
+	if err != nil {
+		panic(err.Error())
+	}
 }

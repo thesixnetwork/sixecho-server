@@ -4,390 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
 )
 
-//SSCDataCreate struct
-type SSCDataCreate struct {
-	SubmittedBy eos.Name
-	AssetID     int64
-	IData       string
-	MData       string
-	CommonInfo  string
-	DetailInfo  string
-	RefInfo     string
-}
-
-//SSCDataTransfer struct
-type SSCDataTransfer struct {
-	From        eos.Name `json:"from"`
-	To          eos.Name `json:"to"`
-	FromJSONStr string   `json:"from_json_str"`
-	ToJSONStr   string   `json:"to_json_str"`
-	AssetID     int64    `json:"asset_id"`
-	Memo        string   `json:"memo"`
-}
-
-//SSCDataUpdate struct
-type SSCDataUpdate struct {
-	Owner   eos.Name `json:"owner"`
-	AssetID int64    `json:"asset_id"`
-}
-
-//EchoOwner stuct
-type EchoOwner struct {
-	Owner    string `json:"owner"`
-	RefOwner string `json:"ref_owner"`
-}
-
-//IData struct
-type IData struct {
-	Digest   string `json:"digest"`
-	Sha256   string `json:"sha256"`
-	Sizefile int64  `json:"size_file"`
-	Type     string `json:"type"`
-}
-
-//RefInfo struct
-type RefInfo struct {
-	EchoOwner
-	Creator    string `json:"creator"`
-	RefCreator string `json:"ref_creator"`
-}
-
-//FromToTransaction struct
-type FromToTransaction struct {
-	SubmittedBy string     `json:"submitted_by,omitempty"`
-	Platform    string     `json:"platform,omitempty"`
-	FromUser    *EchoOwner `json:"from_user,omitempty"`
-	ToUser      *EchoOwner `json:"to_user,omitempty"`
-}
-
-//CommonInfo struct
-type CommonInfo struct {
-	Title    string   `json:"title"`
-	ImageURL string   `json:"image_url"`
-	ParentID string   `json:"parent_id"`
-	Tags     []string `json:"tags"`
-}
-
-//DetailInfo strcut
-type DetailInfo struct {
-}
-
-func createSSCBlockNumIndex(client *elastic.Client) {
-	elasticIndex := "ssc_blocknum_v1"
-	elasticAlias := "ssc_blocknum"
-	exists, err := client.IndexExists(elasticIndex).Do(ctx)
-	if err != nil {
-		panic(err.Error())
-	}
-	mapping := `
-	{
-		"settings": {
-			"number_of_shards": 5,
-			"number_of_replicas": 0
-		},
-		"mappings": {		
-			"_doc": {
-							"properties": {
-									"block_num":{
-											"type":"long"
-									}
-							}
-					}
-		}
-	}`
-	if !exists {
-		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
-		if err != nil {
-			// Handle error
-			panic(err)
-		}
-		if !createIndex.Acknowledged {
-			// Not acknowledged
-		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func createSSCDigitalContentIndex(client *elastic.Client) {
-	elasticIndex := "ssc_transactions_v1"
-	elasticAlias := TransactionAlias
-	exists, err := client.IndexExists(elasticIndex).Do(ctx)
-	if err != nil {
-		panic(err.Error())
-	}
-	mapping := `
-	{
-		"settings": {
-			"number_of_shards": 5,
-			"number_of_replicas": 0
-		},
-		"mappings": {		
-			"_doc": {
-							"properties": {
-									"submitted_by":{
-											"type":"keyword"
-									},	
-									"from_user":{
-											"type":"nested"
-									},	
-									"platform":{
-											"type":"keyword"
-									},	
-									"to_user":{
-											"type":"nested"
-									},	
-									"asset_id":{
-											"type":"keyword"
-									},
-									"asset_type":{
-											"type":"keyword"
-									},
-									"block_num":{
-											"type":"long"
-									},
-									"klaytn_tx_id":{
-											"type":"keyword"
-									},
-									"transaction_action":{
-											"type":"keyword"
-									},
-									"transaction_status":{
-											"type":"keyword"
-									},
-									"authorization":{
-											"type":"nested"
-									},
-									"created_time":{
-											"type":"integer"
-									},
-									"updated_time":{
-											"type":"integer"
-									},
-									"created_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									},
-									"updated_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									}
-							}
-					}
-		}
-	}`
-	if !exists {
-		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
-		if err != nil {
-			// Handle error
-			panic(err)
-		}
-		if !createIndex.Acknowledged {
-			// Not acknowledged
-		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func createSSCImageIndex(client *elastic.Client) {
-	elasticIndex := "ssc_images_v1"
-	elasticAlias := ImageAlias
-	exists, err := client.IndexExists(elasticIndex).Do(ctx)
-	if err != nil {
-		panic(err.Error())
-	}
-	mapping := `
-	{
-		"settings": {
-			"number_of_shards": 5,
-			"number_of_replicas": 0
-		},
-		"mappings": {		
-			"_doc": {
-							"properties": {
-									"digest":{
-											"type":"keyword"
-									},
-									"sha256":{
-											"type":"keyword"
-									},
-									"size_file":{
-											"type":"keyword"
-									},
-									"submitted_by":{
-										"type":"keyword"
-									},
-									"platform":{
-										"type":"keyword"
-									},
-									"title":{
-										"type":"keyword"
-									},
-									"image_url":{
-										"type":"text"
-									},
-									"creator":{
-										"type":"keyword"
-									},
-									"parent_id":{
-										"type":"keyword"
-									},
-									"owner":{
-										"type":"keyword"
-									},
-									"ref_owner":{
-										"type":"keyword"
-									},
-									"ref_creator":{
-										"type":"keyword"
-									},
-									"tags":{
-										"type":"keyword"
-									},
-									"status":{
-										"type":"keyword"
-									},
-									"mdata":{
-										"type":"text"
-									},
-									"created_time":{
-											"type":"integer"
-									},
-									"updated_time":{
-											"type":"integer"
-									},
-									"created_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									},
-									"updated_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									}
-							}
-					}
-		}
-	}`
-	if !exists {
-		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
-		if err != nil {
-			// Handle error
-			panic(err)
-		}
-		if !createIndex.Acknowledged {
-			// Not acknowledged
-		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func createSSCTextIndex(client *elastic.Client) {
-	elasticIndex := "ssc_texts_v1"
-	elasticAlias := TextAlias
-	exists, err := client.IndexExists(elasticIndex).Do(ctx)
-	if err != nil {
-		panic(err.Error())
-	}
-	mapping := `
-	{
-		"settings": {
-			"number_of_shards": 5,
-			"number_of_replicas": 0
-		},
-		"mappings": {		
-			"_doc": {
-							"properties": {
-									"digest":{
-											"type":"keyword"
-									},
-									"sha256":{
-											"type":"keyword"
-									},
-									"size_file":{
-											"type":"keyword"
-									},
-									"submitted_by":{
-										"type":"keyword"
-									},
-									"platform":{
-										"type":"keyword"
-									},
-									"title":{
-										"type":"keyword"
-									},
-									"image_url":{
-										"type":"text"
-									},
-									"creator":{
-										"type":"keyword"
-									},
-									"parent_id":{
-										"type":"keyword"
-									},
-									"owner":{
-										"type":"keyword"
-									},
-									"ref_owner":{
-										"type":"keyword"
-									},
-									"ref_creator":{
-										"type":"keyword"
-									},
-									"tags":{
-										"type":"keyword"
-									},
-									"status":{
-										"type":"keyword"
-									},
-									"mdata":{
-										"type":"text"
-									},
-									"created_time":{
-											"type":"integer"
-									},
-									"updated_time":{
-											"type":"integer"
-									},
-									"created_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									},
-									"updated_at":{
-											"type":"date",
-											"format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis||strict_date_optional_time"
-									}
-							}
-					}
-		}
-	}`
-	if !exists {
-		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
-		if err != nil {
-			// Handle error
-			panic(err)
-		}
-		if !createIndex.Acknowledged {
-			// Not acknowledged
-		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
 func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32 {
 	elasticAlias := "ssc_blocknum"
 	doc, err := client.Get().Index(elasticAlias).Type("_doc").Id("1").Pretty(true).Do(ctx)
@@ -412,7 +34,7 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 	return blockNumber
 }
 
-func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *eos.Action, assetID string, iData *IData, klaytnTxID string, fromto FromToTransaction) {
+func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *eos.Action, assetID string, iData *IData, klaytnTxID string, fromto FromToTransaction, detailvalue *string) {
 	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
@@ -426,6 +48,7 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 		TransactionAction string          `json:"transaction_action"`
 		TransactionStatus string          `json:"transaction_status"`
 		Authorization     []Authorization `json:"authorization"`
+		DetailValues      *string         `json:"detail_values,omitempty"`
 		FromToTransaction
 		CreatedTime int64  `json:"created_time"`
 		UpdatedTime int64  `json:"updated_time"`
@@ -445,7 +68,6 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 	}
 	var assetType string
 	assetType = iData.Type
-	// assetID = fmt.Sprintf("%d", sscData.AssetID)
 	if assetType == "" {
 		assetType = getAssetType(assetID)
 	}
@@ -460,6 +82,7 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 		TransactionStatus: tx.Status.String(),
 		Authorization:     authorizationStucts,
 		FromToTransaction: fromto,
+		DetailValues:      detailvalue,
 		CreatedTime:       timeStamp.Unix(),
 		UpdatedTime:       timeStamp.Unix(),
 		CreatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
@@ -502,37 +125,59 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						ToUser:      &refInfo.EchoOwner,
 					}
 
-					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto)
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
 
 				} else if action.Account == "assets" && action.Name == "transfer" {
 					sscDataTransfer := action.Data.(*SSCDataTransfer)
-					updateAssetToEs(sscDataTransfer)
+					updateTransferES(sscDataTransfer)
 					var fromUser, toUser *EchoOwner
 					json.Unmarshal([]byte(sscDataTransfer.FromJSONStr), &fromUser)
 					json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &toUser)
 					fromto := FromToTransaction{
-						SubmittedBy: string(sscDataTransfer.From),
-						Platform:    string(sscDataTransfer.To),
-						FromUser:    fromUser,
-						ToUser:      toUser,
+						FromPlatform: string(sscDataTransfer.From),
+						ToPlatform:   string(sscDataTransfer.To),
+						FromUser:     fromUser,
+						ToUser:       toUser,
+						Memo:         sscDataTransfer.Memo,
 					}
-					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscDataTransfer.AssetID), &iData, klaytnTxID, fromto)
-				} else if action.Account == "assets" && action.Name == "update" {
-					// sscDataUpdate := action.Data.(*SSCDataUpdate)
-					// insertTxToES(action.Authorization, "", "", nil, nil, fmt.Sprintf("%d", sscDataUpdate.AssetID), "", tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscDataTransfer.AssetID), &iData, klaytnTxID, fromto, nil)
+				} else if action.Account == "assets" && action.Name == "setdinfo" {
+					sscSetDInfo := action.Data.(*SSCSetDInfo)
+					fromto := FromToTransaction{
+						Platform: string(sscSetDInfo.Platform),
+					}
+					assetID := fmt.Sprintf("%d", sscSetDInfo.AssetID)
+					setDInfo(sscSetDInfo)
+					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, &sscSetDInfo.DetailInfo)
+				} else if action.Account == "assets" && action.Name == "updatecinfo" {
+					sscUpdateCInfo := action.Data.(*SSCUpdateCInfo)
+					fromto := FromToTransaction{
+						Platform: string(sscUpdateCInfo.Platform),
+					}
+					assetID := fmt.Sprintf("%d", sscUpdateCInfo.AssetID)
+					updateCInfo(sscUpdateCInfo)
+					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, &sscUpdateCInfo.DetailInfo)
+				} else if action.Account == "assets" && action.Name == "setmdata" {
+					sscSetMdata := action.Data.(*SSCSetMdata)
+					fromto := FromToTransaction{
+						Platform: string(sscSetMdata.Platform),
+					}
+					assetID := fmt.Sprintf("%d", sscSetMdata.AssetID)
+					setMdata(sscSetMdata)
+					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, nil)
 				} else if action.Account == "assets" && action.Name == "revoke" {
-					// insertTxToES(action.Authorization, "", "", nil, nil, fmt.Sprintf("%d", sscDataUpdate.AssetID), "", tx.Transaction.ID.String(), string(action.Name), tx.Status.String(), klaytnTxID, blockResp.BlockNum, timeStamp)
 				}
 			}
 		}
 	}
 }
 
-func updateAssetToEs(sscDataTransfer *SSCDataTransfer) {
+func updateTransferES(sscDataTransfer *SSCDataTransfer) {
 	query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
 	var userTo EchoOwner
 	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
-	strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner)
+	now := time.Now()
+	strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'; ctx._source.updated_time = %d; ctx._source.updated_at = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner, now.Unix(), now.Format("2006-01-02 15:04:05"))
 	inScript := elastic.NewScriptInline(strScript).Lang("painless")
 	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
 	if err != nil {
@@ -542,13 +187,6 @@ func updateAssetToEs(sscDataTransfer *SSCDataTransfer) {
 
 func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
 	elasticAlias := ImageAlias
-	type DetailInfoImage struct {
-		Photographer *string `json:"photographer,omitempty"`
-		Width        int64   `json:"width,omitempty"`
-		Hight        int64   `json:"hight,omitempty"`
-		Dpi          int64   `json:"dpi,omitempty"`
-	}
-
 	type DataImage struct {
 		*IData
 		*DetailInfoImage
@@ -591,14 +229,6 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 
 func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
 	elasticAlias := TextAlias
-	type DetailInfoText struct {
-		ISBN          string `json:"isbn,omitempty"`
-		Author        string `json:"author,omitempty"`
-		Publisher     string `json:"publisher,omitempty"`
-		PublishedDate string `json:"published_date,omitempty"`
-		Language      string `json:"language,omitempty"`
-		NumberOfpages string `json:"number_of_pages,omitempty"`
-	}
 	type DataText struct {
 		*IData
 		*DetailInfoText
