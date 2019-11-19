@@ -166,6 +166,13 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					setMdata(sscSetMdata)
 					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, nil)
 				} else if action.Account == "assets" && action.Name == "revoke" {
+					sscRevoke := action.Data.(*SSCRevoke)
+					fromto := FromToTransaction{
+						Platform: string(sscRevoke.Platform),
+					}
+					assetID := fmt.Sprintf("%d", sscRevoke.AssetID)
+					revoke(sscRevoke)
+					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, nil)
 				}
 			}
 		}

@@ -168,6 +168,7 @@ func main() {
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setmdata"), SSCSetMdata{})
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("setdinfo"), SSCSetDInfo{})
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("updatecinfo"), SSCUpdateCInfo{})
+	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("revoke"), SSCRevoke{})
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)

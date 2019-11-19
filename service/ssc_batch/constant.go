@@ -68,6 +68,13 @@ type SSCUpdateCInfo struct {
 	DetailInfo string   `json:"detail_info"`
 }
 
+//SSCRevoke struct
+type SSCRevoke struct {
+	Platform eos.Name `json:"platform"`
+	AssetID  int64    `json:"asset_id"`
+	Memo     string   `json:"memo"`
+}
+
 //EchoOwner stuct
 type EchoOwner struct {
 	Owner    string `json:"owner"`
