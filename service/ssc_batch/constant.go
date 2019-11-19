@@ -12,7 +12,7 @@ const (
 type DetailInfoImage struct {
 	Photographer *string `json:"photographer,omitempty"`
 	Width        int64   `json:"width,omitempty"`
-	Hight        int64   `json:"hight,omitempty"`
+	Height       int64   `json:"height,omitempty"`
 	Dpi          int64   `json:"dpi,omitempty"`
 }
 

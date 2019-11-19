@@ -93,6 +93,9 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 									"memo":{
 											"type":"text"
 									},
+									"price":{
+											"type":"float"
+									},
 									"detail_values":{
 											"type":"text"
 									},
@@ -161,6 +164,12 @@ func createSSCImageIndex(client *elastic.Client) {
 									"platform":{
 										"type":"keyword"
 									},
+									"from_platform":{
+										"type":"keyword"
+									},
+									"to_platform":{
+										"type":"keyword"
+									},
 									"title":{
 										"type":"keyword"
 									},
@@ -197,7 +206,7 @@ func createSSCImageIndex(client *elastic.Client) {
 									"width":{
 										"type":"integer"
 									},
-									"hight":{
+									"height":{
 										"type":"integer"
 									},
 									"dpi":{
