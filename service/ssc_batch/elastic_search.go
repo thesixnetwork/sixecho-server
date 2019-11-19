@@ -192,6 +192,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 		*DetailInfoImage
 		*CommonInfo
 		*RefInfo
+		Revoke      bool   `json:"revoked"`
 		Platform    string `json:"platform"`
 		SubmittedBy string `json:"submitted_by"`
 		MData       string `json:"mdata,omitempty"`
@@ -234,6 +235,7 @@ func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IDa
 		*DetailInfoText
 		*CommonInfo
 		*RefInfo
+		Revoke      bool   `json:"revoked"`
 		Platform    string `json:"platform"`
 		SubmittedBy string `json:"submitted_by"`
 		MData       string `json:"mdata,omitempty"`

@@ -185,8 +185,8 @@ func createSSCImageIndex(client *elastic.Client) {
 									"tags":{
 										"type":"keyword"
 									},
-									"status":{
-										"type":"keyword"
+									"revoked":{
+										"type":"boolean"
 									},
 									"mdata":{
 										"type":"text"
@@ -292,8 +292,8 @@ func createSSCTextIndex(client *elastic.Client) {
 									"tags":{
 										"type":"keyword"
 									},
-									"status":{
-										"type":"keyword"
+									"revoked":{
+										"type":"boolean"
 									},
 									"mdata":{
 										"type":"text"
