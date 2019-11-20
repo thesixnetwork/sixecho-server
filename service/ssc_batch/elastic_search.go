@@ -98,8 +98,8 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 
 func insertAssetToES(blockResp *eos.BlockResp) {
 	iData := IData{}
+	fmt.Println(blockResp.BlockNum)
 	for _, tx := range blockResp.Transactions {
-		fmt.Println(blockResp.BlockNum)
 		if tx.Transaction.Packed == nil {
 			continue
 		}
@@ -112,9 +112,9 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					json.Unmarshal([]byte(sscData.IData), &iData)
 					switch typeAsset := iData.Type; typeAsset {
 					case "IMAGE":
-						insertImageToES(blockResp, sscData, &iData)
+						go insertImageToES(blockResp, sscData, &iData)
 					case "TEXT":
-						insertTextToES(blockResp, sscData, &iData)
+						go insertTextToES(blockResp, sscData, &iData)
 					}
 					var refInfo *RefInfo
 					json.Unmarshal([]byte(sscData.RefInfo), &refInfo)
@@ -125,7 +125,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						ToUser:      &refInfo.EchoOwner,
 					}
 
-					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
+					go insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
 
 				} else if action.Account == "assets" && action.Name == "transfer" {
 					sscDataTransfer := action.Data.(*SSCDataTransfer)
@@ -264,7 +264,6 @@ func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IDa
 	dataText.DetailInfoText = detailInfo
 	dataText.CommonInfo = commonInfo
 	dataText.RefInfo = refInfo
-	fmt.Printf("%#v\n", sscData.MData)
 	dataText.MData = sscData.MData
 	dataText.Platform = string(sscData.SubmittedBy)
 	dataText.SubmittedBy = string(sscData.SubmittedBy)

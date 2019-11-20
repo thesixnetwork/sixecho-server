@@ -102,7 +102,6 @@ func submitToKlaytn(sscTxID string, blockNum uint32) string {
 		},
 	}
 	payloadJSON, _ := json.Marshal(payload)
-	fmt.Println(string(payloadJSON))
 	lambdaClient := l.New(sess)
 	input := &l.InvokeInput{
 		FunctionName: aws.String(lambdaFunction),
