@@ -1,33 +1,34 @@
-'use strict'
-const Handler = require('./src/middleware/handler.middleware')
+"use strict";
+const Handler = require("./src/middleware/handler.middleware");
 const functions = {
-  'new-book': require('./src/functions/new-book'),
-  'new-book-and-digest': require('./src/functions/new-book-and-digest'),
-  'get-book': require('./src/functions/get-book'),
-  'get-digest': require('./src/functions/get-digest'),
-  'new-digest': require('./src/functions/new-digest'),
-  'new-asset': require('./src/functions/new-asset')
-}
+  "new-book": require("./src/functions/new-book"),
+  "new-book-and-digest": require("./src/functions/new-book-and-digest"),
+  "get-book": require("./src/functions/get-book"),
+  "get-digest": require("./src/functions/get-digest"),
+  "new-digest": require("./src/functions/new-digest"),
+  "new-asset": require("./src/functions/new-asset"),
+  "new-assets": require("./src/functions/new-assets")
+};
 
 exports.handler = (event, context, callback) => {
-  context.callbackWaitsForEmptyEventLoop = false
-  const name = event.name
-  const body = event.body || {}
+  context.callbackWaitsForEmptyEventLoop = false;
+  const name = event.name;
+  const body = event.body || {};
   if (functions[name]) {
-    const Fn = functions[name]
-    const invalid = Fn.schema(body)
+    const Fn = functions[name];
+    const invalid = Fn.schema(body);
     if (invalid) {
-      callback(invalid.error)
-      return
+      callback(invalid.error);
+      return;
     }
     new Fn(body, (err, resp) => {
       if (err) {
-        callback(Handler.Response(err))
-        return
+        callback(Handler.Response(err));
+        return;
       }
-      callback(null, Handler.Response(resp))
-    })
+      callback(null, Handler.Response(resp));
+    });
   } else {
-    callback(new Error(`No function name ${name}.`))
+    callback(new Error(`No function name ${name}.`));
   }
-}
+};
