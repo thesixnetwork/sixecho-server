@@ -114,9 +114,9 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					json.Unmarshal([]byte(sscData.IData), &iData)
 					switch typeAsset := iData.Type; typeAsset {
 					case "IMAGE":
-						go insertImageToES(blockResp, sscData, &iData)
+						insertImageToES(blockResp, sscData, &iData)
 					case "TEXT":
-						go insertTextToES(blockResp, sscData, &iData)
+						insertTextToES(blockResp, sscData, &iData)
 					}
 					var refInfo *RefInfo
 					json.Unmarshal([]byte(sscData.RefInfo), &refInfo)
@@ -127,7 +127,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						ToUser:      &refInfo.EchoOwner,
 					}
 
-					go insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
 
 				} else if action.Account == "assets" && action.Name == "transfer" {
 					sscDataTransfer := action.Data.(*SSCDataTransfer)
