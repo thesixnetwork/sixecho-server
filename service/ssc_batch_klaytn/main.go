@@ -106,7 +106,8 @@ func updateElastBatch(txs []*Transaction) {
 	}
 	bulkResp, err := bulk.Do(ctx)
 	if err != nil {
-		panic(err.Error())
+		// panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	time.Sleep(time.Second * 3)
 	fmt.Println(bulkResp.Took)
