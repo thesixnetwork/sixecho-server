@@ -98,7 +98,7 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 
 func insertAssetToES(blockResp *eos.BlockResp) {
 	iData := IData{}
-	fmt.Println(blockResp.BlockNum)
+	//fmt.Println(blockResp.BlockNum)
 	for _, tx := range blockResp.Transactions {
 		if tx.Transaction.Packed == nil {
 			continue
@@ -106,7 +106,8 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 		data, _ := tx.Transaction.Packed.Unpack()
 		if len(data.Transaction.Actions) != 0 {
 			for _, action := range data.Transaction.Actions {
-				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+				//klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+				klaytnTxID := ""
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCDataCreate)
 					json.Unmarshal([]byte(sscData.IData), &iData)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -38,8 +37,9 @@ var (
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
-		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		//elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
+		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+	)
 )
 
 func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
@@ -171,5 +171,6 @@ func main() {
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
+	fmt.Println("Running....")
 	tailBlock(block, blockNum)
 }
