@@ -99,9 +99,8 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 }
 
 func insertAssetToES(blockResp *eos.BlockResp) {
-	iData := IData{}
-	//fmt.Println(blockResp.BlockNum)
 	for _, tx := range blockResp.Transactions {
+		iData := IData{}
 		if tx.Transaction.Packed == nil {
 			continue
 		}
