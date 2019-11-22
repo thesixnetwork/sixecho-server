@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
@@ -178,20 +176,6 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 				}
 			}
 		}
-	}
-}
-
-func updateTransferES(blockResp *eos.BlockResp, sscDataTransfer *SSCDataTransfer) {
-	query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
-	var userTo EchoOwner
-	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
-	now := time.Now()
-	strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'; ctx._source.updated_time = %d; ctx._source.updated_at = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner, now.Unix(), now.Format("2006-01-02 15:04:05"))
-	inScript := elastic.NewScriptInline(strScript).Lang("painless")
-	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
-	if err != nil {
-		insertError(blockResp.BlockNum, TransferError, err.Error())
-		// panic(err.Error())
 	}
 }
 
