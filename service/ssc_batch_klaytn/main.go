@@ -113,7 +113,7 @@ func updateElastBatch(txs []*Transaction) {
 }
 
 func backGround() {
-	for range time.Tick(time.Second * 1) {
+	for range time.Tick(time.Second * 2) {
 		fmt.Println("Start...")
 		allProcess()
 	}
@@ -123,10 +123,14 @@ func allProcess() {
 	txs := queryTransactoin()
 	if len(txs) > 0 {
 		responseKlatyn := submitToKlaytn(txs)
-		matching(txs, responseKlatyn.Body)
-		updateElastBatch(txs)
-		doc, _ := json.Marshal(txs)
-		fmt.Println(string(doc))
+		if len(responseKlatyn.Body) > 0 {
+			matching(txs, responseKlatyn.Body)
+			updateElastBatch(txs)
+			//doc, _ := json.Marshal(txs)
+			//fmt.Println(string(doc))
+		} else {
+			fmt.Println("Submit Klaytn is null")
+		}
 	}
 }
 
