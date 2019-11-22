@@ -156,6 +156,7 @@ func createIndexElastic() {
 	createSSCDigitalContentIndex(client)
 	createSSCImageIndex(client)
 	createSSCTextIndex(client)
+	createErrorsIndex(client)
 }
 
 func main() {

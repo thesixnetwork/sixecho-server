@@ -6,6 +6,15 @@ const (
 	TextAlias        string = "ssc_texts"
 	ImageAlias       string = "ssc_images"
 	TransactionAlias string = "ssc_transactions"
+	ErrorAlias       string = "ssc_errors"
+	TXCreateError    string = "TX_CREATE"
+	TransferError    string = "TRANSFER"
+	ImgCreateError   string = "IMG_CREATE"
+	TextCreateError  string = "TEXT_CREATE"
+	RevokeError      string = "REVOKED"
+	SETMdataError    string = "MDATA_UPDATE"
+	UCinfoError      string = "CINFO_UPDATE"
+	SETDinfoError    string = "DINFO_UPDATE"
 )
 
 //DetailInfoImage struct
@@ -113,4 +122,11 @@ type CommonInfo struct {
 	ImageURL string   `json:"image_url"`
 	ParentID string   `json:"parent_id"`
 	Tags     []string `json:"tags"`
+}
+
+//ErrorMessage struct
+type ErrorMessage struct {
+	BlockNum     int64  `json:"block_num"`
+	ErrorType    string `json:"error_type"`
+	ErrorMessage string `json:"error_message"`
 }

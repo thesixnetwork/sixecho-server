@@ -358,3 +358,48 @@ func createSSCTextIndex(client *elastic.Client) {
 		}
 	}
 }
+
+func createErrorsIndex(client *elastic.Client) {
+	elasticIndex := "ssc_errors_v1"
+	elasticAlias := ErrorAlias
+	exists, err := client.IndexExists(elasticIndex).Do(ctx)
+	if err != nil {
+		panic(err.Error())
+	}
+	mapping := `
+	{
+		"settings": {
+			"number_of_shards": 5,
+			"number_of_replicas": 0
+		},
+		"mappings": {		
+			"_doc": {
+							"properties": {
+									"block_num":{
+											"type":"long"
+									},
+									"error_type":{
+											"type":"keyword"
+									},
+									"error_message":{
+											"type":"text"
+									}
+							}
+					}
+		}
+	}`
+	if !exists {
+		createIndex, err := client.CreateIndex(elasticIndex).BodyString(mapping).Do(ctx)
+		if err != nil {
+			// Handle error
+			panic(err)
+		}
+		if !createIndex.Acknowledged {
+			// Not acknowledged
+		}
+		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
+}

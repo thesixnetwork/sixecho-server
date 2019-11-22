@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
 )
 
@@ -14,7 +15,7 @@ func getAssetType(assetID string) string {
 	searchSource := elastic.NewSearchSource().Size(2).Query(query)
 	response, err := client.Search(TextAlias, ImageAlias).Type("_doc").SearchSource(searchSource).Pretty(true).Do(context.Background())
 	if err != nil {
-		panic(err)
+		fmt.Println("GET ASSET Error")
 	}
 	if response.Hits.TotalHits > 1 {
 		panic("Source more than one")
@@ -34,7 +35,7 @@ func getAssetType(assetID string) string {
 	return idata.Type
 }
 
-func setDInfo(sscSetDInfo *SSCSetDInfo) {
+func setDInfo(blockResp *eos.BlockResp, sscSetDInfo *SSCSetDInfo) {
 	assetID := fmt.Sprintf("%d", sscSetDInfo.AssetID)
 	assetType := getAssetType(assetID)
 	var err error
@@ -73,11 +74,12 @@ func setDInfo(sscSetDInfo *SSCSetDInfo) {
 		_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(update).Do(context.Background())
 	}
 	if err != nil {
-		panic(err.Error())
+		insertError(blockResp.BlockNum, SETDinfoError, err.Error())
+		// panic(err.Error())
 	}
 }
 
-func updateCInfo(sscUpdateCinfo *SSCUpdateCInfo) {
+func updateCInfo(blockResp *eos.BlockResp, sscUpdateCinfo *SSCUpdateCInfo) {
 	assetID := fmt.Sprintf("%d", sscUpdateCinfo.AssetID)
 	assetType := getAssetType(assetID)
 	timeStamp := time.Now()
@@ -103,11 +105,12 @@ func updateCInfo(sscUpdateCinfo *SSCUpdateCInfo) {
 	}
 	_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(update).Do(context.Background())
 	if err != nil {
-		panic(err.Error())
+		insertError(blockResp.BlockNum, UCinfoError, err.Error())
+		// panic(err.Error())
 	}
 }
 
-func setMdata(sscSetMdata *SSCSetMdata) {
+func setMdata(blockResp *eos.BlockResp, sscSetMdata *SSCSetMdata) {
 	assetID := fmt.Sprintf("%d", sscSetMdata.AssetID)
 	assetType := getAssetType(assetID)
 	timeStamp := time.Now()
@@ -125,17 +128,35 @@ func setMdata(sscSetMdata *SSCSetMdata) {
 		"updated_at":   timeStamp.Format("2006-01-02 15:04:05"),
 	}).Do(context.Background())
 	if err != nil {
-		panic(err.Error())
+		insertError(blockResp.BlockNum, SETMdataError, err.Error())
+		// panic(err.Error())
 	}
 }
 
-func revoke(sscRevoke *SSCRevoke) {
+func revoke(blockResp *eos.BlockResp, sscRevoke *SSCRevoke) {
 	query := elastic.NewTermQuery("_id", sscRevoke.AssetID)
 	now := time.Now()
 	strScript := fmt.Sprintf("ctx._source.revoked = %t ; ctx._source.updated_time = %d; ctx._source.updated_at = '%s'", true, now.Unix(), now.Format("2006-01-02 15:04:05"))
 	inScript := elastic.NewScriptInline(strScript).Lang("painless")
 	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
 	if err != nil {
-		panic(err.Error())
+		insertError(blockResp.BlockNum, RevokeError, err.Error())
+		// panic(err.Error())
+	}
+}
+
+func insertError(blockNum uint32, errorType string, errorMsg string) {
+	errorMessage := ErrorMessage{
+		BlockNum:     int64(blockNum),
+		ErrorType:    errorType,
+		ErrorMessage: errorMsg,
+	}
+	errorMessageJSON, _ := json.Marshal(errorMessage)
+	_, err := client.Index().Index(ErrorAlias).Type("_doc").BodyString(string(errorMessageJSON)).Do(ctx)
+	if err != nil {
+		_, err = client.Index().Index(ErrorAlias).Type("_doc").BodyString(string(errorMessageJSON)).Do(ctx)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 }
