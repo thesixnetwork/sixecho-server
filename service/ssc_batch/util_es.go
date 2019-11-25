@@ -95,6 +95,7 @@ func updateTransferES(blockResp *eos.BlockResp, sscDataTransfer *SSCDataTransfer
 	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
 	type Update struct {
 		EchoOwner
+		Platform    string `json:"platform"`
 		UpdatedTime int64  `json:"updated_time"`
 		UpdatedAt   string `json:"updated_at"`
 	}
@@ -102,11 +103,12 @@ func updateTransferES(blockResp *eos.BlockResp, sscDataTransfer *SSCDataTransfer
 		UpdatedTime: timeStamp.Unix(),
 		UpdatedAt:   timeStamp.Format("2006-01-02 15:04:05"),
 		EchoOwner:   userTo,
+		Platform:    string(sscDataTransfer.To),
 	}
 	_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(update).Do(context.Background())
 	if err != nil {
 		insertError(blockResp.BlockNum, TransferError, err.Error())
-		panic(err.Error())
+		//panic(err.Error())
 	}
 	//query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
 	//var userTo EchoOwner
