@@ -208,6 +208,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 	dataImage.DetailInfoImage = detailInfo
 	dataImage.RefInfo = refInfo
 	dataImage.MData = sscData.MData
+	dataImage.CommonInfo = commonInfo
 	dataImage.Platform = string(sscData.SubmittedBy)
 	dataImage.SubmittedBy = string(sscData.SubmittedBy)
 	dataImage.CreatedTime = timeStamp.Unix()
