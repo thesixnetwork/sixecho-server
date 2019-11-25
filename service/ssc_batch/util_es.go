@@ -79,6 +79,48 @@ func setDInfo(blockResp *eos.BlockResp, sscSetDInfo *SSCSetDInfo) {
 	}
 }
 
+func updateTransferES(blockResp *eos.BlockResp, sscDataTransfer *SSCDataTransfer) {
+	assetID := fmt.Sprintf("%d", sscDataTransfer.AssetID)
+	assetType := getAssetType(assetID)
+	timeStamp := time.Now()
+	var err error
+	var elasticAlias string
+	switch assetType {
+	case "IMAGE":
+		elasticAlias = ImageAlias
+	case "TEXT":
+		elasticAlias = TextAlias
+	}
+	var userTo EchoOwner
+	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
+	type Update struct {
+		EchoOwner
+		UpdatedTime int64  `json:"updated_time"`
+		UpdatedAt   string `json:"updated_at"`
+	}
+	update := Update{
+		UpdatedTime: timeStamp.Unix(),
+		UpdatedAt:   timeStamp.Format("2006-01-02 15:04:05"),
+		EchoOwner:   userTo,
+	}
+	_, err = client.Update().Index(elasticAlias).Type("_doc").Id(assetID).Doc(update).Do(context.Background())
+	if err != nil {
+		insertError(blockResp.BlockNum, TransferError, err.Error())
+		panic(err.Error())
+	}
+	//query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
+	//var userTo EchoOwner
+	//json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
+	//now := time.Now()
+	//strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'; ctx._source.updated_time = %d; ctx._source.updated_at = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner, now.Unix(), now.Format("2006-01-02 15:04:05"))
+	//inScript := elastic.NewScriptInline(strScript).Lang("painless")
+	//_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
+	//if err != nil {
+	//insertError(blockResp.BlockNum, TransferError, err.Error())
+	//panic(err.Error())
+	//}
+}
+
 func updateCInfo(blockResp *eos.BlockResp, sscUpdateCinfo *SSCUpdateCInfo) {
 	assetID := fmt.Sprintf("%d", sscUpdateCinfo.AssetID)
 	assetType := getAssetType(assetID)
