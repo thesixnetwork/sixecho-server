@@ -39,7 +39,7 @@ var (
 )
 
 func queryTransactoin() []*Transaction {
-	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("klaytn_tx_id", ""))
+	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("klaytn_tx_id", ""), elastic.NewTermQuery("transaction_action", "create"))
 	response, err := client.Search(TransactionAlias).Query(query).Sort("created_at", true).Size(30).Do(context.Background())
 	if err != nil {
 		panic(err.Error())
