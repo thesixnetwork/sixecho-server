@@ -86,8 +86,8 @@ type SSCRevoke struct {
 
 //EchoOwner stuct
 type EchoOwner struct {
-	Owner    string `json:"owner"`
-	RefOwner string `json:"ref_owner"`
+	Owner    string `json:"owner,omitempty"`
+	RefOwner string `json:"ref_owner,omitempty"`
 }
 
 //IData struct
