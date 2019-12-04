@@ -13,14 +13,18 @@ class Function {
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
-          const klayRequest = caver.klay.sendTransaction({
-            type: "SMART_CONTRACT_EXECUTION",
-            from: handler.getCallerAddress(),
-            to: handler.getContractAddress(),
-            data,
-            gas: 10000000,
-            nonce: nonce + i
-          });
+          const klayRequest = caver.klay
+            .sendTransaction({
+              type: "SMART_CONTRACT_EXECUTION",
+              from: handler.getCallerAddress(),
+              to: handler.getContractAddress(),
+              data,
+              gas: 10000000,
+              nonce: nonce + i
+            })
+            .on("error", e => {
+              throw e;
+            });
           const timeout = new Promise((resolve, reject) => {
             var t = setTimeout(() => {
               clearTimeout(t);
