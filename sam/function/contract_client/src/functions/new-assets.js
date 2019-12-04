@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const Promise = require("bluebird");
 const Handler = require("../middleware/handler.middleware");
 
 class Function {
@@ -23,12 +24,21 @@ class Function {
             })
           );
         }
-        Promise.all(promises)
+        var t;
+        const timeout = new Promise((resolve, reject) => {
+          t = setTimeout(() => {
+            reject(new Error("Request Timeout exceeded 10 s."));
+          }, 10000);
+        });
+
+        Promise.race([Promise.all(promises), timeout])
           .then(r => {
+            clearTimeout(t);
             handler.setResponseBody(r).setStatusCode(200);
             callback(null, handler);
           })
           .catch(err => {
+            clearTimeout(t);
             console.error(err);
             handler.setErrorMessage(err);
             callback(handler);
