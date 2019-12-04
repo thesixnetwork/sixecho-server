@@ -13,8 +13,8 @@ class Function {
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
-          promises.push(
-            caver.klay.sendTransaction({
+          const klayRequest = caver.klay
+            .sendTransaction({
               type: "SMART_CONTRACT_EXECUTION",
               from: handler.getCallerAddress(),
               to: handler.getContractAddress(),
@@ -22,23 +22,24 @@ class Function {
               gas: 10000000,
               nonce: nonce + i
             })
-          );
+            .on("error", e => {
+              throw e;
+            });
+          const timeout = new Promise((resolve, reject) => {
+            var t = setTimeout(() => {
+              clearTimeout(t);
+              reject(new Error("Request Timeout exceeded 20 s."));
+            }, 30000);
+          });
+          promises.push(Promise.race([klayRequest, timeout]));
         }
-        var t;
-        const timeout = new Promise((resolve, reject) => {
-          t = setTimeout(() => {
-            reject(new Error("Request Timeout exceeded 10 s."));
-          }, 10000);
-        });
 
-        Promise.race([Promise.all(promises), timeout])
+        Promise.all(promises)
           .then(r => {
-            clearTimeout(t);
             handler.setResponseBody(r).setStatusCode(200);
             callback(null, handler);
           })
           .catch(err => {
-            clearTimeout(t);
             console.error(err);
             handler.setErrorMessage(err);
             callback(handler);

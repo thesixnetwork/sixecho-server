@@ -83,8 +83,7 @@ class Handler {
   setErrorMessage(body) {
     let msg = "";
     if (body instanceof Error) {
-      msg = `${body.name}: ${body.message}
-        ${body.stack}`;
+      msg = `${body.name}: ${body.message}`;
     } else if (typeof body === "object") {
       msg = body.message ? body.message : body;
     }
