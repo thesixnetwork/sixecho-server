@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -26,6 +25,7 @@ var (
 	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
 	ctx             = context.Background()
 	currentBlockNum uint32
+	blockRunning    uint32
 	region          = os.Getenv("AWS_REGION")
 	cred            = credentials.NewEnvCredentials()
 	signingClient   = v4.NewV4SigningClient(cred, region)
@@ -38,8 +38,9 @@ var (
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
-		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		//elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
+		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+	)
 )
 
 func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
@@ -54,8 +55,10 @@ func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
 }
 
 func updateBlockNumToES() {
+	fmt.Println(blockRunning)
 	doc := map[string]interface{}{
-		"block_num": currentBlockNum,
+		//"block_num": currentBlockNum,
+		"block_num": blockRunning,
 	}
 	docJSON, _ := json.Marshal(doc)
 	_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
@@ -70,14 +73,7 @@ func queryAssetID(blockNum uint32) string {
 }
 func excuteSSC(blockResp *eos.BlockResp) {
 	insertAssetToES(blockResp)
-	// for _, tx := range blockResp.Transactions {
-	// if tx.Transaction.Packed == nil {
-	// continue
-	// }
-	// klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
-	// assetID := queryAssetID(blockResp.BlockNum)
-	// insertTxToES(assetID, tx.Transaction.ID.String(), klaytnTxID, blockResp.BlockNum)
-	// }
+	blockRunning = blockResp.BlockNum
 }
 func submitToKlaytn(sscTxID string, blockNum uint32) string {
 
@@ -156,6 +152,7 @@ func createIndexElastic() {
 	createSSCDigitalContentIndex(client)
 	createSSCImageIndex(client)
 	createSSCTextIndex(client)
+	createErrorsIndex(client)
 }
 
 func main() {
@@ -171,5 +168,6 @@ func main() {
 	api = eos.New(eosURL)
 	getCurrentBlockNum()
 	loadAllBackgroundProcess(block, blockNum)
+	fmt.Println("Running....")
 	tailBlock(block, blockNum)
 }

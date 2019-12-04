@@ -1,10 +1,8 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/eoscanada/eos-go"
 	"github.com/olivere/elastic"
@@ -20,7 +18,8 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 		docJSON, _ := json.Marshal(doc)
 		_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
 		if err != nil {
-			panic(err.Error())
+			// panic(err.Error())
+			fmt.Println("Get Current BlockNum From ES" + err.Error())
 		}
 		return blockNumber
 	}
@@ -92,21 +91,22 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(tx.Transaction.ID.String()).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error insert transaction to ES")
-		panic(err.Error())
+		insertError(blockResp.BlockNum, TXCreateError, err.Error())
+		// panic(err.Error())
 	}
 }
 
 func insertAssetToES(blockResp *eos.BlockResp) {
-	iData := IData{}
-	fmt.Println(blockResp.BlockNum)
 	for _, tx := range blockResp.Transactions {
+		iData := IData{}
 		if tx.Transaction.Packed == nil {
 			continue
 		}
 		data, _ := tx.Transaction.Packed.Unpack()
 		if len(data.Transaction.Actions) != 0 {
 			for _, action := range data.Transaction.Actions {
-				klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+				//klaytnTxID := submitToKlaytn(tx.Transaction.ID.String(), blockResp.BlockNum)
+				klaytnTxID := ""
 				if action.Account == "assets" && action.Name == "create" {
 					sscData := action.Data.(*SSCDataCreate)
 					json.Unmarshal([]byte(sscData.IData), &iData)
@@ -125,11 +125,11 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						ToUser:      &refInfo.EchoOwner,
 					}
 
-					go insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
+					insertTxToES(blockResp, tx, action, fmt.Sprintf("%d", sscData.AssetID), &iData, klaytnTxID, fromto, nil)
 
 				} else if action.Account == "assets" && action.Name == "transfer" {
 					sscDataTransfer := action.Data.(*SSCDataTransfer)
-					updateTransferES(sscDataTransfer)
+					updateTransferES(blockResp, sscDataTransfer)
 					var fromUser, toUser *EchoOwner
 					json.Unmarshal([]byte(sscDataTransfer.FromJSONStr), &fromUser)
 					json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &toUser)
@@ -147,7 +147,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						Platform: string(sscSetDInfo.Platform),
 					}
 					assetID := fmt.Sprintf("%d", sscSetDInfo.AssetID)
-					setDInfo(sscSetDInfo)
+					setDInfo(blockResp, sscSetDInfo)
 					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, &sscSetDInfo.DetailInfo)
 				} else if action.Account == "assets" && action.Name == "updatecinfo" {
 					sscUpdateCInfo := action.Data.(*SSCUpdateCInfo)
@@ -155,7 +155,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						Platform: string(sscUpdateCInfo.Platform),
 					}
 					assetID := fmt.Sprintf("%d", sscUpdateCInfo.AssetID)
-					updateCInfo(sscUpdateCInfo)
+					updateCInfo(blockResp, sscUpdateCInfo)
 					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, &sscUpdateCInfo.DetailInfo)
 				} else if action.Account == "assets" && action.Name == "setmdata" {
 					sscSetMdata := action.Data.(*SSCSetMdata)
@@ -163,7 +163,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						Platform: string(sscSetMdata.Platform),
 					}
 					assetID := fmt.Sprintf("%d", sscSetMdata.AssetID)
-					setMdata(sscSetMdata)
+					setMdata(blockResp, sscSetMdata)
 					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, nil)
 				} else if action.Account == "assets" && action.Name == "revoke" {
 					sscRevoke := action.Data.(*SSCRevoke)
@@ -171,24 +171,11 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 						Platform: string(sscRevoke.Platform),
 					}
 					assetID := fmt.Sprintf("%d", sscRevoke.AssetID)
-					revoke(sscRevoke)
+					revoke(blockResp, sscRevoke)
 					insertTxToES(blockResp, tx, action, assetID, &iData, klaytnTxID, fromto, nil)
 				}
 			}
 		}
-	}
-}
-
-func updateTransferES(sscDataTransfer *SSCDataTransfer) {
-	query := elastic.NewTermQuery("_id", sscDataTransfer.AssetID)
-	var userTo EchoOwner
-	json.Unmarshal([]byte(sscDataTransfer.ToJSONStr), &userTo)
-	now := time.Now()
-	strScript := fmt.Sprintf("ctx._source.platform = '%s'; ctx._source.owner = '%s'; ctx._source.ref_owner = '%s'; ctx._source.updated_time = %d; ctx._source.updated_at = '%s'", sscDataTransfer.To, userTo.Owner, userTo.RefOwner, now.Unix(), now.Format("2006-01-02 15:04:05"))
-	inScript := elastic.NewScriptInline(strScript).Lang("painless")
-	_, err := client.UpdateByQuery("ssc_texts", "ssc_images").Query(query).Script(inScript).Do(context.Background())
-	if err != nil {
-		panic(err.Error())
 	}
 }
 
@@ -221,6 +208,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 	dataImage.DetailInfoImage = detailInfo
 	dataImage.RefInfo = refInfo
 	dataImage.MData = sscData.MData
+	dataImage.CommonInfo = commonInfo
 	dataImage.Platform = string(sscData.SubmittedBy)
 	dataImage.SubmittedBy = string(sscData.SubmittedBy)
 	dataImage.CreatedTime = timeStamp.Unix()
@@ -231,7 +219,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error Insert Image To ES : ")
-		panic(err.Error())
+		insertError(blockResp.BlockNum, ImgCreateError, err.Error())
 	}
 }
 
@@ -276,6 +264,6 @@ func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IDa
 	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error Insert Text To ES : ")
-		panic(err.Error())
+		insertError(blockResp.BlockNum, TextCreateError, err.Error())
 	}
 }
