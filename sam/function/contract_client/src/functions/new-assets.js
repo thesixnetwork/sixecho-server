@@ -25,13 +25,7 @@ class Function {
             .on("error", e => {
               throw e;
             });
-          const timeout = new Promise((resolve, reject) => {
-            var t = setTimeout(() => {
-              clearTimeout(t);
-              reject(new Error("Request Timeout exceeded 20 s."));
-            }, 30000);
-          });
-          promises.push(Promise.race([klayRequest, timeout]));
+          promises.push(klayRequest);
         }
 
         Promise.all(promises)
