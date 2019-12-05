@@ -23,6 +23,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "abi-decoder": "^2.2.2",
     "aws-sdk": "^2.495.0",
     "aws-serverless-express": "^3.3.6",
     "bluebird": "^3.5.5",

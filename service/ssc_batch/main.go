@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -20,16 +21,15 @@ import (
 var (
 	api *eos.API
 	// elasticURL      = os.Getenv("ELASTIC_URL")
-	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	eosURL          = "http://ec2-3-0-89-218.ap-southeast-1.compute.amazonaws.com:8888"
-	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
+	elasticURL      = "https://search-sixadmin-qfgn7dggaqvur3ckwrmhwmym3u.ap-southeast-1.es.amazonaws.com"
+	eosURL          = "http://192.168.33.156:8888"
+	lambdaFunction  = "SixEchoFunction-ContractClient-PNSG31FO5WH3"
 	ctx             = context.Background()
 	currentBlockNum uint32
 	blockRunning    uint32
 	region          = os.Getenv("AWS_REGION")
 	cred            = credentials.NewEnvCredentials()
 	signingClient   = v4.NewV4SigningClient(cred, region)
-	// sess            = session.Must(session.NewSession())
 	sess = session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
 			Region: aws.String("ap-southeast-1"),
@@ -37,9 +37,9 @@ var (
 	}))
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
-		// elastic.SetHttpClient(signingClient),
-		//elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		elastic.SetHttpClient(signingClient),
+		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
+		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)),
 	)
 )
 
@@ -55,7 +55,7 @@ func tailBlock(block chan *eos.BlockResp, blockNum chan uint32) {
 }
 
 func updateBlockNumToES() {
-	fmt.Println(blockRunning)
+	//fmt.Println(blockRunning)
 	doc := map[string]interface{}{
 		//"block_num": currentBlockNum,
 		"block_num": blockRunning,

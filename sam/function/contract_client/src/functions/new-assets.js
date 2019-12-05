@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const Promise = require("bluebird");
 const Handler = require("../middleware/handler.middleware");
 
 class Function {
@@ -12,8 +13,8 @@ class Function {
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
-          promises.push(
-            caver.klay.sendTransaction({
+          const klayRequest = caver.klay
+            .sendTransaction({
               type: "SMART_CONTRACT_EXECUTION",
               from: handler.getCallerAddress(),
               to: handler.getContractAddress(),
@@ -21,8 +22,12 @@ class Function {
               gas: 10000000,
               nonce: nonce + i
             })
-          );
+            .on("error", e => {
+              throw e;
+            });
+          promises.push(klayRequest);
         }
+
         Promise.all(promises)
           .then(r => {
             handler.setResponseBody(r).setStatusCode(200);

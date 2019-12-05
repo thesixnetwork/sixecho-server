@@ -30,6 +30,7 @@ var (
 		Config: aws.Config{
 			Region: aws.String("ap-southeast-1"),
 		},
+		// Profile: "default",
 	}))
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
@@ -87,6 +88,9 @@ func submitToKlaytn(txs []*Transaction) ResponseKlatyn {
 	if err != nil {
 		panic(err.Error())
 	}
+	if len(response.Body) == 0 {
+		fmt.Println(string(result.Payload))
+	}
 	return response
 }
 
@@ -106,12 +110,11 @@ func updateElastBatch(txs []*Transaction) {
 		req.Type("_doc")
 		bulk = bulk.Add(req)
 	}
-	bulkResp, err := bulk.Do(ctx)
+	bulkResp, err := bulk.Refresh("wait_for").Do(ctx)
 	if err != nil {
 		// panic(err.Error())
 		fmt.Println(err.Error())
 	}
-	time.Sleep(time.Second * 5)
 	fmt.Println(bulkResp.Took)
 }
 
