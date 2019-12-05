@@ -19,8 +19,8 @@ import (
 
 var (
 	// elasticURL      = os.Getenv("ELASTIC_URL")
-	elasticURL     = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	lambdaFunction = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
+	elasticURL     = "https://search-sixadmin-qfgn7dggaqvur3ckwrmhwmym3u.ap-southeast-1.es.amazonaws.com"
+	lambdaFunction = "SixEchoFunction-ContractClient-PNSG31FO5WH3"
 	ctx            = context.Background()
 	region         = os.Getenv("AWS_REGION")
 	cred           = credentials.NewEnvCredentials()
@@ -33,9 +33,10 @@ var (
 	}))
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
-		// elastic.SetHttpClient(signingClient),
+		elastic.SetHttpClient(signingClient),
 		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		//elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags))
+	)
 )
 
 func queryTransactoin() []*Transaction {
@@ -81,10 +82,11 @@ func submitToKlaytn(txs []*Transaction) ResponseKlatyn {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	var response ResponseKlatyn
-	json.Unmarshal(result.Payload, &response)
-	// fmt.Printf("%#v\n", response)
+	err = json.Unmarshal(result.Payload, &response)
+	if err != nil {
+		panic(err.Error())
+	}
 	return response
 }
 
@@ -109,13 +111,13 @@ func updateElastBatch(txs []*Transaction) {
 		// panic(err.Error())
 		fmt.Println(err.Error())
 	}
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 5)
 	fmt.Println(bulkResp.Took)
 }
 
 func backGround() {
-	for range time.Tick(time.Second * 2) {
-		fmt.Println("Start...")
+	fmt.Println("Runing...")
+	for range time.Tick(time.Second * 3) {
 		allProcess()
 	}
 }
@@ -125,12 +127,14 @@ func allProcess() {
 	if len(txs) > 0 {
 		responseKlatyn := submitToKlaytn(txs)
 		if len(responseKlatyn.Body) > 0 {
+			fmt.Println("Submit Klaytn Suucess")
 			matching(txs, responseKlatyn.Body)
 			updateElastBatch(txs)
 			//doc, _ := json.Marshal(txs)
 			//fmt.Println(string(doc))
 		} else {
 			fmt.Println("Submit Klaytn is null")
+			time.Sleep(time.Second * 10)
 		}
 	}
 }
