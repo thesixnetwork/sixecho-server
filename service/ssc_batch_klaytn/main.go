@@ -84,7 +84,11 @@ func submitToKlaytn(txs []*Transaction) ResponseKlatyn {
 	}
 
 	var response ResponseKlatyn
-	json.Unmarshal(result.Payload, &response)
+
+	err = json.Unmarshal(result.Payload, &response)
+	if err != nil {
+		panic(err.Error)
+	}
 	// fmt.Printf("%#v\n", response)
 	return response
 }
@@ -132,6 +136,7 @@ func allProcess() {
 			//fmt.Println(string(doc))
 		} else {
 			fmt.Println("Submit Klaytn is null")
+			time.Sleep(time.Second * 10)
 		}
 	}
 }

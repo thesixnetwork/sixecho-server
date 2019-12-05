@@ -112,9 +112,9 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					json.Unmarshal([]byte(sscData.IData), &iData)
 					switch typeAsset := iData.Type; typeAsset {
 					case "IMAGE":
-						insertImageToES(blockResp, sscData, &iData)
+						go insertImageToES(blockResp, sscData, &iData)
 					case "TEXT":
-						insertTextToES(blockResp, sscData, &iData)
+						go insertTextToES(blockResp, sscData, &iData)
 					}
 					var refInfo *RefInfo
 					json.Unmarshal([]byte(sscData.RefInfo), &refInfo)
