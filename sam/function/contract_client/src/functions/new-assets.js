@@ -1,6 +1,6 @@
-const Joi = require("joi");
-const Promise = require("bluebird");
-const Handler = require("../middleware/handler.middleware");
+const Joi = require('joi');
+const Promise = require('bluebird');
+const Handler = require('../middleware/handler.middleware');
 
 class Function {
   constructor(body, callback) {
@@ -15,14 +15,14 @@ class Function {
             .encodeABI();
           const klayRequest = caver.klay
             .sendTransaction({
-              type: "SMART_CONTRACT_EXECUTION",
+              type: 'SMART_CONTRACT_EXECUTION',
               from: handler.getCallerAddress(),
               to: handler.getContractAddress(),
               data,
               gas: 10000000,
               nonce: nonce + i
             })
-            .on("error", e => {
+            .on('error', e => {
               throw e;
             });
           promises.push(klayRequest);
@@ -45,7 +45,8 @@ class Function {
   static schema(body) {
     const hashSchema = Joi.object().keys({
       hash: Joi.string().required(),
-      block_number: Joi.string().required()
+      block_number: Joi.string().required(),
+      account: Joi.string()
     });
     const schema = Joi.array().items(hashSchema);
     // Return result.
@@ -53,7 +54,6 @@ class Function {
     if (result.error === null) {
       return;
     }
-
     return result;
   }
 }

@@ -1,7 +1,8 @@
 .PHONY: deps clean build
-	
+
 build:
 	cd contract_client && npm install && docker run --rm -v "${PWD}":/var/task lambci/lambda:build-nodejs10.x npm rebuild
+	cd generate_wallet && npm install && docker run --rm -v "${PWD}":/var/task lambci/lambda:build-nodejs10.x npm rebuild
 
 deploy:
 	sam package --template-file template.yaml --s3-bucket ${BUCKET_NAME} --output-template-file packaged.yaml --profile ${AWS_PROFILE}

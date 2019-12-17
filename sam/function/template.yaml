@@ -1,8 +1,8 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   wallet
-  
+
   Sample SAM Template for wallet
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -21,7 +21,8 @@ Resources:
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
-          NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
+          NETWORK_PROVIDER_URL:
+            [[NETWORK_PROVIDER_URL]]
             # IS_PRODUCTION: false
       #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
       #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
@@ -32,22 +33,58 @@ Resources:
       #     Type: SQS
       #     Properties:
       #       Queue: !ImportValue "SQS::SetSigner:Arn"
-            # BatchSize: 10  
+      # BatchSize: 10
       Policies:
         # - AmazonDynamoDBFullAccess
         # - AmazonSQSFullAccess
-        # - AmazonCognitoPowerUser  
+        # - AmazonCognitoPowerUser
         - Statement:
-          -
-            Effect: "Allow"
-            Action:
-              - "ssm:GetParameter"
-              - "ssm:GetParameters"
-            Resource: "*"
-  
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+                - "ssm:GetParameters"
+              Resource: "*"
+  GenerateWallet:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: generate_wallet/
+      Handler: index.handler
+      Runtime: nodejs10.x
+      Timeout: 45
+      Environment:
+        Variables:
+          NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
+
+  SSCToKlaytn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: scheduler/ssh_to_klaytn/
+      Handler: index.handler
+      Runtime: go1.x
+      Timeout: 60
+      Policies:
+        - Statement:
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+                - "ssm:GetParameters"
+              Resource: "*"
+      Events:
+        HourlyVMIScheduler:
+          Type: Schedule
+          Properties:
+            Schedule: rate(3 minutes)
+            Input: '{"prod_type":"V"}'
+      Environment:
+        Variables:
+          API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
+          NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
+          SSH_URL: [[SSH_URL]]
+          SSH_PRIVAET_KEY: [[SSH_PRIVAET_KEY]]
+
 Outputs:
   ContractClient:
     Description: "ContractClient Lambda Function ARN"
-    Value: !GetAtt ContractClient.Arn  
+    Value: !GetAtt ContractClient.Arn
     Export:
       Name: FN::ContractClient
