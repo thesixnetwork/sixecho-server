@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "caver-js": "^1.3.0",
     "lodash": "^4.17.15"
   }
 }

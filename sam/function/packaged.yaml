@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
 Description: 'wallet
 
   Sample SAM Template for wallet
@@ -7,32 +8,32 @@ Description: 'wallet
 Globals:
   Function:
     Timeout: 45
-Outputs:
-  ContractClient:
-    Description: ContractClient Lambda Function ARN
-    Export:
-      Name: FN::ContractClient
-    Value:
-      Fn::GetAtt:
-      - ContractClient
-      - Arn
 Resources:
   ContractClient:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://database-s3-ye6jp7gn3qhe/81bcdfacda52c536a7cc49761ad80319
-      Environment:
-        Variables:
-          API_CONTRACT_ADDRESS: '0xad67c0115b1dbb8ba9a263ef49c2a8b14ccf8138'
-          NETWORK_PROVIDER_URL: https://api.cypress.klaytn.net:8651
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/60fd24bfeba853b98cdd3539c4ee9486
       Handler: index.handler
-      Policies:
-      - Statement:
-        - Action:
-          - ssm:GetParameter
-          - ssm:GetParameters
-          Effect: Allow
-          Resource: '*'
       Runtime: nodejs10.x
       Timeout: 45
+      Environment:
+        Variables:
+          API_CONTRACT_ADDRESS: '0x8836da547369b206c413cc93283ec42ec822a5ea'
+          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - ssm:GetParameter
+          - ssm:GetParameters
+          Resource: '*'
+  GenerateWallet:
     Type: AWS::Serverless::Function
-Transform: AWS::Serverless-2016-10-31
+    Properties:
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/a8da805d64f37ff755745c2e41e8e94c
+      Handler: index.handler
+      Runtime: nodejs10.x
+      Timeout: 45
+      Environment:
+        Variables:
+          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
