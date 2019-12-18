@@ -2,19 +2,52 @@ package main
 
 const (
 	TransactionAlias string = "ssc_transactions"
+	AccountAlias     string = "ssc_accounts"
 )
+
+//Owner struct
+type Owner struct {
+	Owner    string `json:"owner"`
+	RefOwner string `json:"ref_owner"`
+}
+
+//AccountKlaytn struct from klaytn
+type AccountKlaytn struct {
+	Address    string `json:"address"`
+	PrivateKey string `json:"privateKey"`
+}
 
 //Transaction struct
 type Transaction struct {
 	ID          string
 	KlaytnTxID  string `json:"klaytn_tx_id"`
 	BlockNumber int64  `json:"block_num"`
+	ToUser      Owner  `json:"to_user"`
+	Platform    string `json:"platform"`
+}
+
+// Account strcut
+type Account struct {
+	ID         string `json:"_id,omitempty"`
+	Platform   string `json:"platform"`
+	RefOwner   string `json:"ref_owner"`
+	PrivateKey string `json:"private_key"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
+}
+
+// MapAccountTx strcut
+type MapAccountTx struct {
+	Account     Account
+	Transaction Transaction
 }
 
 //KlaytnBody struct
 type KlaytnBody struct {
 	Hash        string `json:"hash"`
 	BlockNumber string `json:"block_number"`
+	Account     string `json:"account"`
+	PrivateKey  string `json:"private_key"`
 }
 
 //RequestKlaytn struct
