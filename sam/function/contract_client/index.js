@@ -1,13 +1,12 @@
-"use strict";
-const Handler = require("./src/middleware/handler.middleware");
+const Handler = require('./src/middleware/handler.middleware');
 const functions = {
-  "new-book": require("./src/functions/new-book"),
-  "new-book-and-digest": require("./src/functions/new-book-and-digest"),
-  "get-book": require("./src/functions/get-book"),
-  "get-digest": require("./src/functions/get-digest"),
-  "new-digest": require("./src/functions/new-digest"),
-  "new-asset": require("./src/functions/new-asset"),
-  "new-assets": require("./src/functions/new-assets")
+  'new-book': require('./src/functions/new-book'),
+  'new-book-and-digest': require('./src/functions/new-book-and-digest'),
+  'get-book': require('./src/functions/get-book'),
+  'get-digest': require('./src/functions/get-digest'),
+  'new-digest': require('./src/functions/new-digest'),
+  'new-asset': require('./src/functions/new-asset'),
+  'new-assets': require('./src/functions/new-assets')
 };
 
 exports.handler = (event, context, callback) => {
