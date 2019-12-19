@@ -20,7 +20,7 @@ import (
 var (
 	// elasticURL      = os.Getenv("ELASTIC_URL")
 	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
+	lambdaFunction  = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
 	lambdaGetWallet = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
 	ctx             = context.Background()
 	region          = os.Getenv("AWS_REGION")
@@ -36,8 +36,8 @@ var (
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
-		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)), elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+	keyName = "klaytn-kms"
 )
 
 func queryTransactoin() []*Transaction {
@@ -91,7 +91,6 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 			Account:     t.Account.ID,
 			PrivateKey:  t.Account.PrivateKey,
 		}
-		fmt.Println(tmp)
 		kReqs = append(kReqs, tmp)
 	}
 	payload := RequestKlaytn{
@@ -110,7 +109,8 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 	}
 
 	var response ResponseKlatyn
-
+	fmt.Println(string(result.Payload))
+	fmt.Println("@@@@@@@@@@@@@@@@@@@")
 	err = json.Unmarshal(result.Payload, &response)
 	if err != nil {
 		panic(err.Error)
@@ -248,6 +248,16 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 	return mapAccountTxs
 }
 
+func encrypt(text string) string {
+	return text
+	// kmsClient := kms.New(sess, aws.NewConfig())
+	// encrypted, err := crypt.Encrypt(kmsClient, keyName, []byte(text))
+	// if err != nil {
+	// fmt.Println(err.Error())
+	// }
+	// return encrypted
+}
+
 func insertAccount(txs []*Transaction) []Account {
 	refOwners := filterPlatformRefOwner(txs)
 	if len(refOwners) == 0 {
@@ -263,7 +273,7 @@ func insertAccount(txs []*Transaction) []Account {
 		account := Account{
 			Platform:   platfromOwner[0],
 			RefOwner:   platfromOwner[1],
-			PrivateKey: accountKlaytns[index].PrivateKey,
+			PrivateKey: encrypt(accountKlaytns[index].PrivateKey),
 			CreatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
 			UpdatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
 		}
@@ -322,7 +332,7 @@ func allProcess() {
 		responseKlatyn := submitToKlaytn(mapAccountTxs)
 		if len(responseKlatyn.Body) > 0 {
 			matching(txs, responseKlatyn.Body)
-			updateElastBatch(txs)
+			//			updateElastBatch(txs)
 			//doc, _ := json.Marshal(txs)
 			//fmt.Println(string(doc))
 		} else {
