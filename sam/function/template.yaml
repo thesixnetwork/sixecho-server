@@ -12,7 +12,7 @@ Globals:
 
 Resources:
   ContractClient:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: contract_client/
       Handler: index.handler
@@ -23,27 +23,15 @@ Resources:
           API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
           NETWORK_PROVIDER_URL:
             [[NETWORK_PROVIDER_URL]]
-            # IS_PRODUCTION: false
-      #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
-      #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
-      #       TABLE_NAME: !ImportValue "TB::User"
-      #       USER_POOL_ID: !ImportValue "CognitoUserPool"
-      # Events:
-      #   SetSigner:
-      #     Type: SQS
-      #     Properties:
-      #       Queue: !ImportValue "SQS::SetSigner:Arn"
-      # BatchSize: 10
       Policies:
-        # - AmazonDynamoDBFullAccess
-        # - AmazonSQSFullAccess
-        # - AmazonCognitoPowerUser
         - Statement:
             - Effect: "Allow"
               Action:
                 - "ssm:GetParameter"
                 - "ssm:GetParameters"
+                - "kms:Decrypt"
               Resource: "*"
+              
   GenerateWallet:
     Type: AWS::Serverless::Function
     Properties:
@@ -55,36 +43,9 @@ Resources:
         Variables:
           NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
 
-  SSCToKlaytn:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: scheduler/ssh_to_klaytn/
-      Handler: index.handler
-      Runtime: go1.x
-      Timeout: 60
-      Policies:
-        - Statement:
-            - Effect: "Allow"
-              Action:
-                - "ssm:GetParameter"
-                - "ssm:GetParameters"
-              Resource: "*"
-      Events:
-        HourlyVMIScheduler:
-          Type: Schedule
-          Properties:
-            Schedule: rate(3 minutes)
-            Input: '{"prod_type":"V"}'
-      Environment:
-        Variables:
-          API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
-          NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
-          SSH_URL: [[SSH_URL]]
-          SSH_PRIVAET_KEY: [[SSH_PRIVAET_KEY]]
-
-Outputs:
-  ContractClient:
-    Description: "ContractClient Lambda Function ARN"
-    Value: !GetAtt ContractClient.Arn
-    Export:
-      Name: FN::ContractClient
+# Outputs:
+  # ContractClient:
+  #   Description: "ContractClient Lambda Function ARN"
+  #   Value: !GetAtt ContractClient.Arn
+  #   Export:
+  #     Name: FN::ContractClient
