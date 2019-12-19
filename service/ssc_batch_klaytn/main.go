@@ -42,7 +42,7 @@ var (
 
 func queryTransactoin() []*Transaction {
 	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("klaytn_tx_id", ""), elastic.NewTermQuery("transaction_action", "create"))
-	response, err := client.Search(TransactionAlias).Query(query).Sort("created_at", true).Size(30).Do(context.Background())
+	response, err := client.Search(TransactionAlias).Query(query).Sort("created_at", true).Size(10).Do(context.Background())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -109,23 +109,27 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 	}
 
 	var response ResponseKlatyn
-	fmt.Println(string(result.Payload))
-	fmt.Println("@@@@@@@@@@@@@@@@@@@")
+	// fmt.Println(string(result.Payload))
+	// fmt.Println("@@@@@@@@@@@@@@@@@@@")
 	err = json.Unmarshal(result.Payload, &response)
 	if err != nil {
 		panic(err.Error)
 	}
-	// fmt.Printf("%#v\n", response)
 	return response
 }
 
-func matching(txs []*Transaction, klaynTxs []Body) {
+func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
+	var tmp []Transaction
 	for index, tx := range txs {
-		tx.KlaytnTxID = klaynTxs[index].TransactionHash
+		tx.Transaction.KlaytnTxID = klaynTxs[index].TransactionHash
+		tmp = append(tmp, tx.Transaction)
 	}
+	// data, _ := json.Marshal(tmp)
+	// fmt.Println(string(data))
+	return tmp
 }
 
-func updateElastBatch(txs []*Transaction) {
+func updateElastBatch(txs []Transaction) {
 	bulk := client.Bulk()
 	for _, tx := range txs {
 		req := elastic.NewBulkUpdateRequest()
@@ -216,7 +220,6 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 		}
 		txs = removeTxByIndex(txs, deleteIndex)
 	}
-
 	// Map account and Transaction, account is default
 	var deleteIndex []int
 	for index, tx := range txs {
@@ -244,7 +247,6 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 			}
 		}
 	}
-
 	return mapAccountTxs
 }
 
@@ -331,8 +333,8 @@ func allProcess() {
 		mapAccountTxs := mapAccounts(txs)
 		responseKlatyn := submitToKlaytn(mapAccountTxs)
 		if len(responseKlatyn.Body) > 0 {
-			matching(txs, responseKlatyn.Body)
-			//			updateElastBatch(txs)
+			mapTxs := matching(mapAccountTxs, responseKlatyn.Body)
+			updateElastBatch(mapTxs)
 			//doc, _ := json.Marshal(txs)
 			//fmt.Println(string(doc))
 		} else {
