@@ -1,8 +1,8 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   wallet
-  
+
   Sample SAM Template for wallet
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -12,7 +12,7 @@ Globals:
 
 Resources:
   ContractClient:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: contract_client/
       Handler: index.handler
@@ -20,34 +20,32 @@ Resources:
       Timeout: 45
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
-          API_CONTRACT_ADDRESS: "0xad67c0115b1dbb8ba9a263ef49c2a8b14ccf8138"
-          NETWORK_PROVIDER_URL: https://api.cypress.klaytn.net:8651
-            # IS_PRODUCTION: false
-      #       STELLAR_NETWORK_URL: "https://horizon-testnet.stellar.org"
-      #       DEAD_LETTER_QUEUE: !ImportValue "SQS::SetSignerDead"
-      #       TABLE_NAME: !ImportValue "TB::User"
-      #       USER_POOL_ID: !ImportValue "CognitoUserPool"
-      # Events:
-      #   SetSigner:
-      #     Type: SQS
-      #     Properties:
-      #       Queue: !ImportValue "SQS::SetSigner:Arn"
-            # BatchSize: 10  
+          API_CONTRACT_ADDRESS: "0xefb251d55d3ddf9e5cb05a52a1e47233e7ce1f83"
+          NETWORK_PROVIDER_URL:
+            https://api.baobab.klaytn.net:8651
       Policies:
-        # - AmazonDynamoDBFullAccess
-        # - AmazonSQSFullAccess
-        # - AmazonCognitoPowerUser  
         - Statement:
-          -
-            Effect: "Allow"
-            Action:
-              - "ssm:GetParameter"
-              - "ssm:GetParameters"
-            Resource: "*"
-  
-Outputs:
-  ContractClient:
-    Description: "ContractClient Lambda Function ARN"
-    Value: !GetAtt ContractClient.Arn  
-    Export:
-      Name: FN::ContractClient
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+                - "ssm:GetParameters"
+                - "kms:Decrypt"
+              Resource: "*"
+              
+  GenerateWallet:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: generate_wallet/
+      Handler: index.handler
+      Runtime: nodejs10.x
+      Timeout: 45
+      Environment:
+        Variables:
+          NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
+
+# Outputs:
+  # ContractClient:
+  #   Description: "ContractClient Lambda Function ARN"
+  #   Value: !GetAtt ContractClient.Arn
+  #   Export:
+  #     Name: FN::ContractClient

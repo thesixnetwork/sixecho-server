@@ -12,13 +12,13 @@ Resources:
   ContractClient:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/60fd24bfeba853b98cdd3539c4ee9486
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/02971111d72274d4595b77c59b69ae4d
       Handler: index.handler
       Runtime: nodejs10.x
       Timeout: 45
       Environment:
         Variables:
-          API_CONTRACT_ADDRESS: '0x8836da547369b206c413cc93283ec42ec822a5ea'
+          API_CONTRACT_ADDRESS: '0xefb251d55d3ddf9e5cb05a52a1e47233e7ce1f83'
           NETWORK_PROVIDER_URL: https://api.baobab.klaytn.net:8651
       Policies:
       - Statement:
@@ -26,11 +26,12 @@ Resources:
           Action:
           - ssm:GetParameter
           - ssm:GetParameters
+          - kms:Decrypt
           Resource: '*'
   GenerateWallet:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/a8da805d64f37ff755745c2e41e8e94c
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/e70c19f4b2a4d4d75c3f01565a609031
       Handler: index.handler
       Runtime: nodejs10.x
       Timeout: 45

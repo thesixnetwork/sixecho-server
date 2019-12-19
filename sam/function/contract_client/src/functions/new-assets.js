@@ -10,31 +10,70 @@ class Function {
       caver.klay.getTransactionCount(handler.getCallerAddress()).then(nonce => {
         const promises = [];
         for (let i = 0; i < body.length; i++) {
+          let {
+            privateKey: senderPrivateKey,
+            address: senderAddress
+          } = handler.getAccountDefault();
+          if (body[i].private_key != '') {
+            senderPrivateKey = body[i].private_key;
+            senderAddress = body[i].account;
+          }
+          console.log("-----------------------") ;
+          console.log(senderAddress);
+          console.log(senderPrivateKey);
+          console.log("-----------------------") ;
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
-          const klayRequest = caver.klay
-            .sendTransaction({
-              type: 'SMART_CONTRACT_EXECUTION',
-              from: handler.getCallerAddress(),
-              to: handler.getContractAddress(),
-              data,
-              gas: 10000000,
-              nonce: nonce + i
-            })
-            .on('error', e => {
-              throw e;
-            });
+          const klayRequest = caver.klay.accounts
+            .signTransaction(
+              {
+                type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
+                from: senderAddress,
+                to: handler.getContractAddress(),
+                data,
+                gas: 10000000,
+                // nonce: nonce + i
+              },
+              senderPrivateKey
+            )
+            .then(
+              result => {
+                const { rawTransaction: senderRawTransaction } = result;
+                console.log("Logic feePayer")
+                console.log(handler.getFeePayer())
+                console.log("-----------------------")
+                return caver.klay
+                  .sendTransaction({
+                    senderRawTransaction: senderRawTransaction,
+                    feePayer: handler.getFeePayer()
+                  })
+                  .then(
+                    result => {
+                      return result;
+                    },
+                    err => {
+                      return err;
+                    }
+                  );
+              },
+              error => {
+                return error;
+              }
+            );
           promises.push(klayRequest);
         }
 
         Promise.all(promises)
           .then(r => {
+            console.log(r)
             handler.setResponseBody(r).setStatusCode(200);
             callback(null, handler);
           })
           .catch(err => {
+            // console.log("EEEEEEEEEEEEEEEEEEEEEE")
             console.error(err);
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@2")
             handler.setErrorMessage(err);
             callback(handler);
           });
@@ -46,7 +85,8 @@ class Function {
     const hashSchema = Joi.object().keys({
       hash: Joi.string().required(),
       block_number: Joi.string().required(),
-      account: Joi.string()
+      account: Joi.string().empty(''),
+      private_key: Joi.string().empty('')
     });
     const schema = Joi.array().items(hashSchema);
     // Return result.
