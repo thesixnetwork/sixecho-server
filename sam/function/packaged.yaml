@@ -12,7 +12,7 @@ Resources:
   ContractClient:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://database-s3-y1kxwr2ft5fq/4c04d797a5505a1db930dc99e3ebe52c
+      CodeUri: s3://database-s3-y1kxwr2ft5fq/02971111d72274d4595b77c59b69ae4d
       Handler: index.handler
       Runtime: nodejs10.x
       Timeout: 45

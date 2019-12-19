@@ -190,7 +190,11 @@ function setFeePayerAccount() {
   return Promise.all([feeaccount, privateKey, defaultAccount]).then(values => {
     caver.klay.accounts.wallet.clear();
     caver.klay.accounts.wallet.add(values[1], values[0]);
+    console.log("FeePayer Key");
+    console.log(values[1]+" "+ values[0]);
+    console.log("----------------------");
     account = caver.klay.accounts.wallet.add(values[2]);
+    feePayer = values[0]
     return [account, values[0]];
   });
 }

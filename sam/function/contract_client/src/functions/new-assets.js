@@ -4,7 +4,6 @@ const Handler = require('../middleware/handler.middleware');
 
 class Function {
   constructor(body, callback) {
-    console.log('-------------------------------------');
     new Handler().then(handler => {
       const echo = handler.getEchoAPI();
       const caver = handler.getCaverAPI();
@@ -19,11 +18,10 @@ class Function {
             senderPrivateKey = body[i].private_key;
             senderAddress = body[i].account;
           }
-          // console.log("-----------------------") ;
-          // console.log(senderAddress);
-          // console.log(senderPrivateKey);
-          // console.log(handler.getFeePayer())
-          // console.log("-----------------------") ;
+          console.log("-----------------------") ;
+          console.log(senderAddress);
+          console.log(senderPrivateKey);
+          console.log("-----------------------") ;
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
@@ -35,13 +33,16 @@ class Function {
                 to: handler.getContractAddress(),
                 data,
                 gas: 10000000,
-                nonce: nonce + i
+                // nonce: nonce + i
               },
               senderPrivateKey
             )
             .then(
               result => {
                 const { rawTransaction: senderRawTransaction } = result;
+                console.log("Logic feePayer")
+                console.log(handler.getFeePayer())
+                console.log("-----------------------")
                 return caver.klay
                   .sendTransaction({
                     senderRawTransaction: senderRawTransaction,
@@ -65,11 +66,14 @@ class Function {
 
         Promise.all(promises)
           .then(r => {
+            console.log(r)
             handler.setResponseBody(r).setStatusCode(200);
             callback(null, handler);
           })
           .catch(err => {
+            // console.log("EEEEEEEEEEEEEEEEEEEEEE")
             console.error(err);
+            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@2")
             handler.setErrorMessage(err);
             callback(handler);
           });
