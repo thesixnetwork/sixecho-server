@@ -4,15 +4,18 @@ const Handler = require('../middleware/handler.middleware');
 
 class Function {
   constructor(body, callback) {
-    console.log("-------------------------------------")
+    console.log('-------------------------------------');
     new Handler().then(handler => {
       const echo = handler.getEchoAPI();
       const caver = handler.getCaverAPI();
       caver.klay.getTransactionCount(handler.getCallerAddress()).then(nonce => {
         const promises = [];
         for (let i = 0; i < body.length; i++) {
-          let {privateKey: senderPrivateKey, address: senderAddress} = handler.getAccountDefault();
-          if(body[i].private_key!=""){
+          let {
+            privateKey: senderPrivateKey,
+            address: senderAddress
+          } = handler.getAccountDefault();
+          if (body[i].private_key != '') {
             senderPrivateKey = body[i].private_key;
             senderAddress = body[i].account;
           }
@@ -24,23 +27,39 @@ class Function {
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
-          const klayRequest = caver.klay.
-            accounts.signTransaction({
-              type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
-              from: senderAddress,
-              to: handler.getContractAddress(),
-              data,
-              gas: 10000000,
-              nonce: nonce + i
-            },senderPrivateKey).then((result)=>{
-             const { rawTransaction: senderRawTransaction }= result; 
-             return caver.klay.sendTransaction({
-                senderRawTransaction: senderRawTransaction,
-                feePayer: handler.getFeePayer(), 
-              });
-            },(error)=>{
-              return error;
-            });
+          const klayRequest = caver.klay.accounts
+            .signTransaction(
+              {
+                type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
+                from: senderAddress,
+                to: handler.getContractAddress(),
+                data,
+                gas: 10000000,
+                nonce: nonce + i
+              },
+              senderPrivateKey
+            )
+            .then(
+              result => {
+                const { rawTransaction: senderRawTransaction } = result;
+                return caver.klay
+                  .sendTransaction({
+                    senderRawTransaction: senderRawTransaction,
+                    feePayer: handler.getFeePayer()
+                  })
+                  .then(
+                    result => {
+                      return result;
+                    },
+                    err => {
+                      return err;
+                    }
+                  );
+              },
+              error => {
+                return error;
+              }
+            );
           promises.push(klayRequest);
         }
 
