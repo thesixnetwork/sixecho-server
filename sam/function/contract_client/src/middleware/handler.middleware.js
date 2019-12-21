@@ -1,6 +1,6 @@
 const Caver = require('caver-js');
 const AWS = require('aws-sdk');
-const EchoAPI = require('../abi/contracts/APIv100.json');
+const EchoAPI = require('../abi/contracts/APIv101.json');
 const caver = new Caver(process.env.NETWORK_PROVIDER_URL);
 
 let account;
@@ -28,7 +28,8 @@ class Handler {
       this._account = account;
       this._feepayer = feePayer;
       return Promise.resolve(this);
-    } else {
+    }
+    else {
       return setFeePayerAccount().then(acc => {
         this._account = acc[0];
         this._feepayer = acc[1];
@@ -95,7 +96,8 @@ class Handler {
     let msg = '';
     if (body instanceof Error) {
       msg = `${body.name}: ${body.message}`;
-    } else if (typeof body === 'object') {
+    }
+    else if (typeof body === 'object') {
       msg = body.message ? body.message : body;
     }
     this._error_message = msg;
@@ -122,7 +124,8 @@ class Handler {
         message: h._message,
         body: h._body
       };
-    } else if (h instanceof Error) {
+    }
+    else if (h instanceof Error) {
       const errBody = { message: h.message };
       errBody.status = 400;
       if (process.env.NODE_ENV === 'test') errBody.stack = h.stack;
@@ -191,7 +194,7 @@ function setFeePayerAccount() {
     caver.klay.accounts.wallet.clear();
     caver.klay.accounts.wallet.add(values[1], values[0]);
     console.log("FeePayer Key");
-    console.log(values[1]+" "+ values[0]);
+    console.log(values[1] + " " + values[0]);
     console.log("----------------------");
     account = caver.klay.accounts.wallet.add(values[2]);
     feePayer = values[0]

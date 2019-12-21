@@ -7,42 +7,72 @@ class Function {
     new Handler().then(handler => {
       const echo = handler.getEchoAPI();
       const caver = handler.getCaverAPI();
-      caver.klay.getTransactionCount(handler.getCallerAddress()).then(nonce => {
+      let { address: senderAddress } = handler.getAccountDefault();
+      const accounts = {};
+
+      // set default account to find nonce
+      accounts[senderAddress] = 0;
+      for (let i = 0; i < body.length; i++) {
+        accounts[body[i].account] = 0;
+      }
+
+      const getNonces = [];
+      Object.keys(accounts).forEach((account, index) => {
+        if (account !== '') {
+          let a = caver.klay.getTransactionCount(account).then(nonce => {
+            return { nonce, account };
+          });
+          getNonces.push(a);
+        }
+      });
+
+      Promise.all(getNonces).then(result => {
+        result.forEach(nonce => {
+          accounts[nonce.account] = nonce.nonce;
+        });
+        console.log(accounts);
+
         const promises = [];
         for (let i = 0; i < body.length; i++) {
           let {
             privateKey: senderPrivateKey,
             address: senderAddress
           } = handler.getAccountDefault();
-          if (body[i].private_key != '') {
+          if (body[i].private_key !== '') {
             senderPrivateKey = body[i].private_key;
             senderAddress = body[i].account;
           }
-          console.log("-----------------------") ;
+          console.log('-----------------------');
           console.log(senderAddress);
           console.log(senderPrivateKey);
-          console.log("-----------------------") ;
+          console.log(handler.getContractAddress());
+          console.log('-----------------------');
+
+          function getCurrentNonce(account) {
+            const tmp = accounts[account];
+            accounts[account] = accounts[account] + 1;
+            return tmp;
+          }
           const data = echo
             .addAsset(body[i].hash, body[i].block_number)
             .encodeABI();
           const klayRequest = caver.klay.accounts
-            .signTransaction(
-              {
+            .signTransaction({
                 type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
                 from: senderAddress,
-                to: handler.getContractAddress(),
+                to: '0x897c57a60af51eb591e39ccce07546ee62ba75f3',
                 data,
-                gas: 10000000,
-                // nonce: nonce + i
+                gas: '300000',
+                nonce: getCurrentNonce(senderAddress)
               },
               senderPrivateKey
             )
             .then(
               result => {
                 const { rawTransaction: senderRawTransaction } = result;
-                console.log("Logic feePayer")
-                console.log(handler.getFeePayer())
-                console.log("-----------------------")
+                console.log('Logic feePayer');
+                console.log(handler.getFeePayer());
+                console.log('-----------------------');
                 return caver.klay
                   .sendTransaction({
                     senderRawTransaction: senderRawTransaction,
@@ -66,14 +96,11 @@ class Function {
 
         Promise.all(promises)
           .then(r => {
-            console.log(r)
             handler.setResponseBody(r).setStatusCode(200);
             callback(null, handler);
           })
           .catch(err => {
             // console.log("EEEEEEEEEEEEEEEEEEEEEE")
-            console.error(err);
-            console.log("@@@@@@@@@@@@@@@@@@@@@@@@@2")
             handler.setErrorMessage(err);
             callback(handler);
           });
