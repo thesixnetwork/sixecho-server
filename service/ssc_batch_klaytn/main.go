@@ -121,8 +121,10 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
 	var tmp []Transaction
 	for index, tx := range txs {
-		tx.Transaction.KlaytnTxID = klaynTxs[index].TransactionHash
-		tmp = append(tmp, tx.Transaction)
+		if klaynTxs[index].TransactionHash != "" {
+			tx.Transaction.KlaytnTxID = klaynTxs[index].TransactionHash
+			tmp = append(tmp, tx.Transaction)
+		}
 	}
 	// data, _ := json.Marshal(tmp)
 	// fmt.Println(string(data))
@@ -130,6 +132,9 @@ func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
 }
 
 func updateElastBatch(txs []Transaction) {
+	if len(txs) == 0 {
+		return
+	}
 	bulk := client.Bulk()
 	for _, tx := range txs {
 		req := elastic.NewBulkUpdateRequest()
