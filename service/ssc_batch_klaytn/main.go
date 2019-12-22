@@ -78,12 +78,12 @@ func getWallets(number int64) []AccountKlaytn {
 	}
 	result, err := lambdaClient.Invoke(input)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	var accounts []AccountKlaytn
 	err = json.Unmarshal(result.Payload, &accounts)
 	if err != nil {
-		panic(err.Error)
+		fmt.Println(err.Error())
 	}
 	return accounts
 }
@@ -131,6 +131,8 @@ func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
 		if klaynTxs[index].TransactionHash != "" {
 			tx.Transaction.KlaytnTxID = klaynTxs[index].TransactionHash
 			tmp = append(tmp, tx.Transaction)
+		} else {
+			fmt.Println("Error can not submit klaytn EOS Tx ID" + tx.Transaction.ID)
 		}
 	}
 	// data, _ := json.Marshal(tmp)
@@ -279,7 +281,22 @@ func insertAccount(txs []*Transaction) []Account {
 	if len(refOwners) == 0 {
 		return []Account{}
 	}
-	accountKlaytns := getWallets(int64(len(refOwners)))
+
+	var accountKlaytns []AccountKlaytn
+
+	for i := 0; i < 3; i++ {
+		accountKlaytns = getWallets(int64(len(refOwners)))
+		if len(accountKlaytns) == len(refOwners) {
+			break
+		} else {
+			fmt.Println("GetWallet have Error")
+		}
+	}
+
+	if len(accountKlaytns) != len(refOwners) {
+		panic("Error can not create account writer")
+	}
+
 	bulk := client.Bulk()
 	var accounts []Account
 	for index, platfromOwner := range refOwners {
