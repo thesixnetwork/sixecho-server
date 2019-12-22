@@ -8,6 +8,9 @@ import (
 	"os"
 	"time"
 
+	b64 "encoding/base64"
+
+	"github.com/aws/aws-sdk-go/service/kms"
 	l "github.com/aws/aws-sdk-go/service/lambda"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -37,12 +40,15 @@ var (
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
 		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)), elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
-	keyName = "klaytn-kms"
+	kmsKeyName = "klaytn-kms"
+
+	svc   = kms.New(sess)
+	keyID = "alias/" + kmsKeyName
 )
 
 func queryTransactoin() []*Transaction {
 	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("klaytn_tx_id", ""), elastic.NewTermQuery("transaction_action", "create"))
-	response, err := client.Search(TransactionAlias).Query(query).Sort("created_at", true).Size(10).Do(context.Background())
+	response, err := client.Search(TransactionAlias).Query(query).Sort("created_at", true).Size(30).Do(context.Background())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -109,8 +115,9 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 	}
 
 	var response ResponseKlatyn
-	// fmt.Println(string(result.Payload))
 	// fmt.Println("@@@@@@@@@@@@@@@@@@@")
+	// fmt.Println(string(payloadJSON))
+	// fmt.Println(string(result.Payload))
 	err = json.Unmarshal(result.Payload, &response)
 	if err != nil {
 		panic(err.Error)
@@ -154,8 +161,8 @@ func updateElastBatch(txs []Transaction) {
 }
 
 func backGround() {
+	fmt.Println("Start...")
 	for range time.Tick(time.Second * 2) {
-		fmt.Println("Start...")
 		allProcess()
 	}
 }
@@ -256,13 +263,15 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 }
 
 func encrypt(text string) string {
-	return text
-	// kmsClient := kms.New(sess, aws.NewConfig())
-	// encrypted, err := crypt.Encrypt(kmsClient, keyName, []byte(text))
-	// if err != nil {
-	// fmt.Println(err.Error())
-	// }
-	// return encrypted
+	result, err := svc.Encrypt(&kms.EncryptInput{
+		KeyId:     aws.String(keyID),
+		Plaintext: []byte(text),
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	sEnc := b64.StdEncoding.EncodeToString(result.CiphertextBlob)
+	return sEnc
 }
 
 func insertAccount(txs []*Transaction) []Account {
