@@ -42,6 +42,15 @@ Resources:
       Environment:
         Variables:
           NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
+          API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
+      Policies:
+        - Statement:
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+                - "ssm:GetParameters"
+                - "kms:Decrypt"
+              Resource: "*"
 
 # Outputs:
   # ContractClient:
