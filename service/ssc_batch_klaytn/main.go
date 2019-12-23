@@ -286,11 +286,12 @@ func insertAccount(txs []*Transaction) []Account {
 	var accountKlaytns []AccountKlaytn
 
 	for i := 0; i < 3; i++ {
-		accountKlaytns = getWallets(int64(len(refOwners)))
+		tmp := getWallets(int64(len(refOwners)))
+		accountKlaytns = append(accountKlaytns, tmp...)
 		if len(accountKlaytns) == len(refOwners) {
 			break
 		} else {
-			fmt.Println("GetWallet have Error")
+			fmt.Println("GetWallet has Error")
 		}
 	}
 
@@ -301,6 +302,12 @@ func insertAccount(txs []*Transaction) []Account {
 	bulk := client.Bulk()
 	var accounts []Account
 	for index, platfromOwner := range refOwners {
+		//@@@@@@@@@@@@@@@@@
+		if accountKlaytns[index].PrivateKey == "" {
+			fmt.Printf("%#v\n", accountKlaytns[index])
+			panic("Check Eerror")
+		}
+		//@@@@@@@@@@@@@@@@
 		req := elastic.NewBulkIndexRequest()
 		req.Index(AccountAlias)
 		timeStamp := time.Now()
