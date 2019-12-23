@@ -2,6 +2,7 @@ const EchoApp = artifacts.require('EchoApp')
 const Storage = artifacts.require('Storage')
 const APIv100 = artifacts.require('APIv100')
 const fs = require('fs')
+const argv = require('minimist')(process.argv.slice(2));
 
 module.exports = async function(deployer, network) {
   // await deployer.deploy(EchoApp,{ overwrite:true });
@@ -10,12 +11,9 @@ module.exports = async function(deployer, network) {
 
   // var appInstance = await EchoApp.deployed();
   // await appInstance.setUpStorage(Storage.address);
-
-  const argv = require('minimist')(process.argv.slice(2))
   // console.log(argv)
-  console.log('xxxx', EchoApp.address)
 
-  if (argv['script'] == 'init') {
+  if (argv['s'] == 'init') {
     deployer.deploy(EchoApp).then(function() {
       return deployer.deploy(Storage, EchoApp.address).then(() => {
         return deployer.deploy(APIv100, Storage.address).then(async () => {
@@ -40,6 +38,6 @@ module.exports = async function(deployer, network) {
       })
     })
   } else {
-    console.log('Skipped.')
+    await console.log('Skipped.')
   }
 }

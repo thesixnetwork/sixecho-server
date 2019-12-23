@@ -1,17 +1,17 @@
 const Caver = require('caver-js')
 // const caver = new Caver('HTTP://127.0.0.1:8551')
 
-const caver = new Caver('https://api.baobab.klaytn.net:8651')
-caver.klay.accounts.wallet.add('0xe8151654d9ba440883fd9c15bbd8e3c0d5eabb614ed0ffda2051dea92a95fb9b')
+const caver = new Caver('https://api.cypress.klaytn.net:8651')
+caver.klay.accounts.wallet.add('0x28df7859de12a1b9700deba0ee173312ad1dd9fadeffb2074b9722859d100211')
 
 // enter your smart contract address
-const contractAddress = '0x733c335c5846509abfa41800bfb62e8fc4ef078a'
-const callerAddr = '0x9df799fed9eb39dfc1beb32bad4303d0990725f3'
+const contractAddress = '0x2bb5996678451804b2872a5dfa8b91932e37a3d4'
+const callerAddr = '0xb989d084019a899d11e66853688649307f8d5070'
 const APIv101 = require('../build/contracts/APIv101.json')
 const apiv101 = new caver.klay.Contract(APIv101.abi, contractAddress)
 
 const EchoApp = require('../build/contracts/EchoApp.json')
-const echoApp = new caver.klay.Contract(EchoApp.abi, '0x19bbbf5b6d1c7f5403411525aaf2f71b2c6ca68f')
+const echoApp = new caver.klay.Contract(EchoApp.abi, '0xa8534940836d81025a1a899c3de22affa548be74')
 // const events = apiv101.events
 
 // addNewAPI('APIv101','0xfe7ef9d8073e3b7aa685d27fd513244d74e55f62')
@@ -22,9 +22,9 @@ const echoApp = new caver.klay.Contract(EchoApp.abi, '0x19bbbf5b6d1c7f5403411525
 //  .then(console.log)
 //  .catch(console.error)
 
-getLatestAPIAddress()
- .then(console.log)
- .catch(console.error)
+// getLatestAPIAddress()
+//  .then(console.log)
+//  .catch(console.error)
 
 // addBook('11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111', '11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111')
 //   .then(console.log)

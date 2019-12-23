@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "caver-js": "^0.9.4",
+    "caver-js": "^0.9.5",
     "diff": "^4.0.1",
     "fs": "0.0.1-security",
     "lodash": ">=4.17.13",

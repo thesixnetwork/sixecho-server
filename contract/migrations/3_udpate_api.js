@@ -8,7 +8,7 @@ module.exports = async function(deployer,network) {
   
   // console.log(argv)
   
-  if (argv['script'] == 'update_api') {
+  if (argv['s'] == 'update_api') {
     const updateAPI = artifacts.require(argv['name']);
     deployer.deploy(updateAPI,Storage.address,{ overwrite:true }).then(async () => {
           var appInstance = await EchoApp.deployed();

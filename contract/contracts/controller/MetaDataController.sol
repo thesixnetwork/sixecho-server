@@ -19,6 +19,11 @@ contract MetaDataController is AccessRestriction,Event{
         return h; 
     }
 
+    function addWriter(address addr) public onlyOwner returns (address) {
+        _storage.addWriter(addr);
+        return addr;
+    }
+
     function addBook(string newKey,string title,string author,string origin,string lang,uint256 paperback,string publisherId,uint256 publishDate) public onlyOwner returns(string returnKey) {
         // Validate data
         // newKey = _storage.getNewKey();
