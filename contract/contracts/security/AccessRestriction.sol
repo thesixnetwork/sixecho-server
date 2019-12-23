@@ -18,7 +18,7 @@ contract AccessRestriction {
     modifier onlyWriter()
     {
         require(
-            writers[msg.sender] == true,
+            writers[msg.sender] == true || isOwner(),
             "Sender not authorized to write storage."
         );
         _;

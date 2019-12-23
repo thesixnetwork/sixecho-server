@@ -33,7 +33,7 @@ contract EchoApp is AccessRestriction ,Event{
         // emit OutputString("API","API Load OK");
 
         address controllerAddress = api.getDataControllerAddress();
-        // emit OutputAddress("Controller",controllerAddress);
+        emit OutputAddress("Controller",controllerAddress);
         _echoData.addWriter(controllerAddress);
         // apis.push(api);
         apis[apiName] = api;
