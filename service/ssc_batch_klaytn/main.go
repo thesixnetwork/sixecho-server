@@ -71,7 +71,7 @@ func getWallets(number int64) []AccountKlaytn {
 	needWallet := number
 	var dataReturn []AccountKlaytn
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5; i++ {
 		var accounts []AccountKlaytn
 		fmt.Println("needWallet = ", fmt.Sprintf("%d", needWallet))
 		payload := map[string]int64{
@@ -102,6 +102,9 @@ func getWallets(number int64) []AccountKlaytn {
 		} else {
 			needWallet = number - int64(len(dataReturn))
 		}
+	}
+	if int64(len(dataReturn)) != number {
+		panic("need wallet is not complated")
 	}
 
 	return dataReturn
