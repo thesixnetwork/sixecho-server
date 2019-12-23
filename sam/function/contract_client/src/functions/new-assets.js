@@ -65,11 +65,11 @@ class Function {
               senderPrivateKey = body[i].private_key;
               senderAddress = body[i].account;
             }
-            console.log('-----------------------');
-            console.log(senderAddress);
-            console.log(senderPrivateKey);
-            console.log(handler.getContractAddress());
-            console.log('-----------------------');
+            // console.log('-----------------------');
+            // console.log(senderAddress);
+            // console.log(senderPrivateKey);
+            // console.log(handler.getContractAddress());
+            // console.log('-----------------------');
 
             function getCurrentNonce(account) {
               const tmp = accounts[account];
@@ -93,9 +93,9 @@ class Function {
               .then(
                 result => {
                   const { rawTransaction: senderRawTransaction } = result;
-                  console.log('Logic feePayer');
-                  console.log(handler.getFeePayer());
-                  console.log('-----------------------');
+                  // console.log('Logic feePayer');
+                  // console.log(handler.getFeePayer());
+                  // console.log('-----------------------');
                   return caver.klay
                     .sendTransaction({
                       senderRawTransaction: senderRawTransaction,
@@ -106,11 +106,13 @@ class Function {
                         return result;
                       },
                       err => {
+                        console.log(err);
                         return err;
                       }
                     );
                 },
                 error => {
+                  console.log(error);
                   return error;
                 }
               );
