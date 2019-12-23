@@ -68,25 +68,46 @@ func queryTransactoin() []*Transaction {
 }
 
 func getWallets(number int64) []AccountKlaytn {
-	payload := map[string]int64{
-		"number": number,
+	needWallet := number
+	var dataReturn []AccountKlaytn
+
+	for i := 0; i < 5; i++ {
+		var accounts []AccountKlaytn
+		fmt.Println("needWallet = ", fmt.Sprintf("%d", needWallet))
+		payload := map[string]int64{
+			"number": needWallet,
+		}
+		payloadJSON, _ := json.Marshal(payload)
+		lambdaClient := l.New(sess)
+		input := &l.InvokeInput{
+			FunctionName: aws.String(lambdaGetWallet),
+			Payload:      payloadJSON,
+		}
+		result, err := lambdaClient.Invoke(input)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		err = json.Unmarshal(result.Payload, &accounts)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		for _, account := range accounts {
+			if account.Address != "" {
+				dataReturn = append(dataReturn, account)
+			}
+		}
+		if int64(len(dataReturn)) == number {
+			break
+		} else {
+			needWallet = number - int64(len(dataReturn))
+		}
 	}
-	payloadJSON, _ := json.Marshal(payload)
-	lambdaClient := l.New(sess)
-	input := &l.InvokeInput{
-		FunctionName: aws.String(lambdaGetWallet),
-		Payload:      payloadJSON,
+	if int64(len(dataReturn)) != number {
+		panic("need wallet is not complated")
 	}
-	result, err := lambdaClient.Invoke(input)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	var accounts []AccountKlaytn
-	err = json.Unmarshal(result.Payload, &accounts)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return accounts
+
+	return dataReturn
 }
 
 func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
@@ -283,24 +304,20 @@ func insertAccount(txs []*Transaction) []Account {
 		return []Account{}
 	}
 
-	var accountKlaytns []AccountKlaytn
+	// var accountKlaytns []AccountKlaytn
 
-	for i := 0; i < 3; i++ {
-		accountKlaytns = getWallets(int64(len(refOwners)))
-		if len(accountKlaytns) == len(refOwners) {
-			break
-		} else {
-			fmt.Println("GetWallet have Error")
-		}
-	}
-
-	if len(accountKlaytns) != len(refOwners) {
-		panic("Error can not create account writer")
-	}
+	accountKlaytns := getWallets(int64(len(refOwners)))
 
 	bulk := client.Bulk()
 	var accounts []Account
 	for index, platfromOwner := range refOwners {
+		//@@@@@@@@@@@@@@@@@
+		if accountKlaytns[index].PrivateKey == "" {
+			fmt.Println(len(accountKlaytns))
+			fmt.Printf("%#v\n", accountKlaytns)
+			panic("Check Eerror")
+		}
+		//@@@@@@@@@@@@@@@@
 		req := elastic.NewBulkIndexRequest()
 		req.Index(AccountAlias)
 		timeStamp := time.Now()
