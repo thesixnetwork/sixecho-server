@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	b64 "encoding/base64"
@@ -311,7 +312,7 @@ func insertAccount(txs []*Transaction) []Account {
 			UpdatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
 		}
 		req.Doc(account)
-		req.Id(accountKlaytns[index].Address)
+		req.Id(strings.ToLower(accountKlaytns[index].Address))
 		req.Type("_doc")
 		bulk = bulk.Add(req)
 		tmp := account
