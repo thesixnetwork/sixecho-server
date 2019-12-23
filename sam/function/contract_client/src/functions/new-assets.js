@@ -80,10 +80,11 @@ class Function {
               .addAsset(body[i].hash, body[i].block_number)
               .encodeABI();
             const klayRequest = caver.klay.accounts
-              .signTransaction({
+              .signTransaction(
+                {
                   type: 'FEE_DELEGATED_SMART_CONTRACT_EXECUTION',
                   from: senderAddress,
-                  to: '0x897c57a60af51eb591e39ccce07546ee62ba75f3',
+                  to: handler.getContractAddress(),
                   data,
                   gas: '300000',
                   nonce: getCurrentNonce(senderAddress)
