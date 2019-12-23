@@ -6,8 +6,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
+	b64 "encoding/base64"
+
+	"github.com/aws/aws-sdk-go/service/kms"
 	l "github.com/aws/aws-sdk-go/service/lambda"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,7 +24,7 @@ import (
 var (
 	// elasticURL      = os.Getenv("ELASTIC_URL")
 	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
+	lambdaFunction  = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
 	lambdaGetWallet = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
 	ctx             = context.Background()
 	region          = os.Getenv("AWS_REGION")
@@ -36,8 +40,11 @@ var (
 	client, _ = elastic.NewClient(elastic.SetURL(elasticURL), elastic.SetSniff(false),
 		elastic.SetHealthcheck(false),
 		// elastic.SetHttpClient(signingClient),
-		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+		elastic.SetErrorLog(log.New(os.Stderr, "", log.LstdFlags)), elastic.SetInfoLog(log.New(os.Stdout, "", log.LstdFlags)))
+	kmsKeyName = "klaytn-kms"
+
+	svc   = kms.New(sess)
+	keyID = "alias/" + kmsKeyName
 )
 
 func queryTransactoin() []*Transaction {
@@ -61,25 +68,46 @@ func queryTransactoin() []*Transaction {
 }
 
 func getWallets(number int64) []AccountKlaytn {
-	payload := map[string]int64{
-		"number": number,
+	needWallet := number
+	var dataReturn []AccountKlaytn
+
+	for i := 0; i < 5; i++ {
+		var accounts []AccountKlaytn
+		fmt.Println("needWallet = ", fmt.Sprintf("%d", needWallet))
+		payload := map[string]int64{
+			"number": needWallet,
+		}
+		payloadJSON, _ := json.Marshal(payload)
+		lambdaClient := l.New(sess)
+		input := &l.InvokeInput{
+			FunctionName: aws.String(lambdaGetWallet),
+			Payload:      payloadJSON,
+		}
+		result, err := lambdaClient.Invoke(input)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		err = json.Unmarshal(result.Payload, &accounts)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		for _, account := range accounts {
+			if account.Address != "" {
+				dataReturn = append(dataReturn, account)
+			}
+		}
+		if int64(len(dataReturn)) == number {
+			break
+		} else {
+			needWallet = number - int64(len(dataReturn))
+		}
 	}
-	payloadJSON, _ := json.Marshal(payload)
-	lambdaClient := l.New(sess)
-	input := &l.InvokeInput{
-		FunctionName: aws.String(lambdaGetWallet),
-		Payload:      payloadJSON,
+	if int64(len(dataReturn)) != number {
+		panic("need wallet is not complated")
 	}
-	result, err := lambdaClient.Invoke(input)
-	if err != nil {
-		panic(err.Error())
-	}
-	var accounts []AccountKlaytn
-	err = json.Unmarshal(result.Payload, &accounts)
-	if err != nil {
-		panic(err.Error)
-	}
-	return accounts
+
+	return dataReturn
 }
 
 func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
@@ -91,7 +119,6 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 			Account:     t.Account.ID,
 			PrivateKey:  t.Account.PrivateKey,
 		}
-		fmt.Println(tmp)
 		kReqs = append(kReqs, tmp)
 	}
 	payload := RequestKlaytn{
@@ -110,22 +137,35 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 	}
 
 	var response ResponseKlatyn
-
+	// fmt.Println("@@@@@@@@@@@@@@@@@@@")
+	// fmt.Println(string(payloadJSON))
+	// fmt.Println(string(result.Payload))
 	err = json.Unmarshal(result.Payload, &response)
 	if err != nil {
 		panic(err.Error)
 	}
-	// fmt.Printf("%#v\n", response)
 	return response
 }
 
-func matching(txs []*Transaction, klaynTxs []Body) {
+func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
+	var tmp []Transaction
 	for index, tx := range txs {
-		tx.KlaytnTxID = klaynTxs[index].TransactionHash
+		if klaynTxs[index].TransactionHash != "" {
+			tx.Transaction.KlaytnTxID = klaynTxs[index].TransactionHash
+			tmp = append(tmp, tx.Transaction)
+		} else {
+			fmt.Println("Error can not submit klaytn EOS Tx ID" + tx.Transaction.ID)
+		}
 	}
+	// data, _ := json.Marshal(tmp)
+	// fmt.Println(string(data))
+	return tmp
 }
 
-func updateElastBatch(txs []*Transaction) {
+func updateElastBatch(txs []Transaction) {
+	if len(txs) == 0 {
+		return
+	}
 	bulk := client.Bulk()
 	for _, tx := range txs {
 		req := elastic.NewBulkUpdateRequest()
@@ -145,8 +185,8 @@ func updateElastBatch(txs []*Transaction) {
 }
 
 func backGround() {
+	fmt.Println("Start...")
 	for range time.Tick(time.Second * 2) {
-		fmt.Println("Start...")
 		allProcess()
 	}
 }
@@ -216,7 +256,6 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 		}
 		txs = removeTxByIndex(txs, deleteIndex)
 	}
-
 	// Map account and Transaction, account is default
 	var deleteIndex []int
 	for index, tx := range txs {
@@ -244,8 +283,19 @@ func mapAccounts(txs []*Transaction) []MapAccountTx {
 			}
 		}
 	}
-
 	return mapAccountTxs
+}
+
+func encrypt(text string) string {
+	result, err := svc.Encrypt(&kms.EncryptInput{
+		KeyId:     aws.String(keyID),
+		Plaintext: []byte(text),
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	sEnc := b64.StdEncoding.EncodeToString(result.CiphertextBlob)
+	return sEnc
 }
 
 func insertAccount(txs []*Transaction) []Account {
@@ -253,22 +303,33 @@ func insertAccount(txs []*Transaction) []Account {
 	if len(refOwners) == 0 {
 		return []Account{}
 	}
+
+	// var accountKlaytns []AccountKlaytn
+
 	accountKlaytns := getWallets(int64(len(refOwners)))
+
 	bulk := client.Bulk()
 	var accounts []Account
 	for index, platfromOwner := range refOwners {
+		//@@@@@@@@@@@@@@@@@
+		if accountKlaytns[index].PrivateKey == "" {
+			fmt.Println(len(accountKlaytns))
+			fmt.Printf("%#v\n", accountKlaytns)
+			panic("Check Eerror")
+		}
+		//@@@@@@@@@@@@@@@@
 		req := elastic.NewBulkIndexRequest()
 		req.Index(AccountAlias)
 		timeStamp := time.Now()
 		account := Account{
 			Platform:   platfromOwner[0],
 			RefOwner:   platfromOwner[1],
-			PrivateKey: accountKlaytns[index].PrivateKey,
+			PrivateKey: encrypt(accountKlaytns[index].PrivateKey),
 			CreatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
 			UpdatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
 		}
 		req.Doc(account)
-		req.Id(accountKlaytns[index].Address)
+		req.Id(strings.ToLower(accountKlaytns[index].Address))
 		req.Type("_doc")
 		bulk = bulk.Add(req)
 		tmp := account
@@ -321,8 +382,8 @@ func allProcess() {
 		mapAccountTxs := mapAccounts(txs)
 		responseKlatyn := submitToKlaytn(mapAccountTxs)
 		if len(responseKlatyn.Body) > 0 {
-			matching(txs, responseKlatyn.Body)
-			updateElastBatch(txs)
+			mapTxs := matching(mapAccountTxs, responseKlatyn.Body)
+			updateElastBatch(mapTxs)
 			//doc, _ := json.Marshal(txs)
 			//fmt.Println(string(doc))
 		} else {
