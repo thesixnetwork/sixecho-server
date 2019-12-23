@@ -12,7 +12,7 @@ Globals:
 
 Resources:
   ContractClient:
-    Type: AWS::Serverless::Function 
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: contract_client/
       Handler: index.handler
@@ -21,8 +21,7 @@ Resources:
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           API_CONTRACT_ADDRESS: [[API_CONTRACT_ADDRESS]]
-          NETWORK_PROVIDER_URL:
-            [[NETWORK_PROVIDER_URL]]
+          NETWORK_PROVIDER_URL: [[NETWORK_PROVIDER_URL]]
       Policies:
         - Statement:
             - Effect: "Allow"
@@ -31,7 +30,7 @@ Resources:
                 - "ssm:GetParameters"
                 - "kms:Decrypt"
               Resource: "*"
-              
+
   GenerateWallet:
     Type: AWS::Serverless::Function
     Properties:
@@ -52,9 +51,9 @@ Resources:
                 - "kms:Decrypt"
               Resource: "*"
 
-# Outputs:
-  # ContractClient:
-  #   Description: "ContractClient Lambda Function ARN"
-  #   Value: !GetAtt ContractClient.Arn
-  #   Export:
-  #     Name: FN::ContractClient
+Outputs:
+  ContractClient:
+    Description: "ContractClient Lambda Function ARN"
+    Value: !GetAtt ContractClient.Arn
+    Export:
+      Name: FN::ContractClient
