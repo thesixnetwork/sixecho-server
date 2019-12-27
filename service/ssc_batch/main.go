@@ -122,12 +122,16 @@ func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 	}()
 	go func() {
 		for range time.Tick(time.Second * 1) {
-			infoResp, _ := api.GetInfo()
-			lastBlockNum := infoResp.HeadBlockNum
-			for i := currentBlockNum; i < lastBlockNum; i++ {
-				blockNum <- i
+			infoResp, err := api.GetInfo()
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				lastBlockNum := infoResp.HeadBlockNum
+				for i := currentBlockNum; i < lastBlockNum; i++ {
+					blockNum <- i
+				}
+				currentBlockNum = lastBlockNum
 			}
-			currentBlockNum = lastBlockNum
 		}
 	}()
 	go func() {
