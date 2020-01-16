@@ -5,6 +5,7 @@ import "github.com/eoscanada/eos-go"
 const (
 	TextAlias        string = "ssc_texts"
 	ImageAlias       string = "ssc_images"
+	BlockNumAlias    string = "ssc_blocknum"
 	TransactionAlias string = "ssc_transactions"
 	ErrorAlias       string = "ssc_errors"
 	TXCreateError    string = "TX_CREATE"
