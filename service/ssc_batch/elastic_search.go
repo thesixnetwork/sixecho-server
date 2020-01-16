@@ -167,6 +167,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					sscRevoke := action.Data.(*SSCRevoke)
 					fromto := FromToTransaction{
 						Platform: string(sscRevoke.Platform),
+						Memo:     sscRevoke.Memo,
 					}
 					assetID := fmt.Sprintf("%d", sscRevoke.AssetID)
 					revoke(blockResp, sscRevoke)

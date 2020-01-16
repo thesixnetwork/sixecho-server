@@ -3,11 +3,11 @@ package main
 import "github.com/eoscanada/eos-go"
 
 const (
-	TextAlias        string = "ssc_texts"
-	ImageAlias       string = "ssc_images"
-	BlockNumAlias    string = "ssc_blocknum"
-	TransactionAlias string = "ssc_transactions"
-	ErrorAlias       string = "ssc_errors"
+	TextAlias        string = "ssc_texts_v2"
+	ImageAlias       string = "ssc_images_v2"
+	BlockNumAlias    string = "ssc_blocknum_v2"
+	TransactionAlias string = "ssc_transactions_v2"
+	ErrorAlias       string = "ssc_errors_v2"
 	TXCreateError    string = "TX_CREATE"
 	TransferError    string = "TRANSFER"
 	ImgCreateError   string = "IMG_CREATE"
