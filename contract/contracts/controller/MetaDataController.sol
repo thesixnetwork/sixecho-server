@@ -47,6 +47,12 @@ contract MetaDataController is AccessRestriction,Event{
         returnKey = newKey;
     }
 
+
+    function getAsset(string h) public view  returns(string blockNo,string platformID){
+        blockNo = _storage.getString(h,"block_number");
+        platformID = _storage.getString(h,"platform_id");
+    }
+
     function getBookByKey(string key) public view returns(string title,string author,string lang,string publisherId,uint256 publishDate) {
          title = _storage.getString(key,"title");
          author = _storage.getString(key,"author");

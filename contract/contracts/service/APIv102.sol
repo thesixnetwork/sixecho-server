@@ -36,6 +36,10 @@ contract APIv102 is API ,AccessRestriction,Event {
 
     }
 
+    function getAsset(string h) public view returns(string blockNo,string platformID) {
+        (blockNo,platformID) = _metaDataController.getAsset(h);
+    }
+
     function addWriter(address newWriter) public onlyOwner {
         writers[newWriter] = true;
     }

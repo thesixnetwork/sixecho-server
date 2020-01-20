@@ -106,3 +106,20 @@ function addNewAPI( apiName, apiAddress) {
   })
 }
 
+
+function addAsset(h,b,p) {
+  return new Promise((resolve, reject) => {
+    apiv102.methods
+      .addAsset(h,b,p)
+      .send({ from: callerAddr, gas: 2000000 }, (err, transactionHash) => {
+        if (err) {
+          return reject(err)
+        }
+        return resolve(transactionHash)
+      })
+  })
+}
+
+function getAsset(id) {
+  return apiv102.methods.getAsset(id).call()
+}

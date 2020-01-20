@@ -1,6 +1,6 @@
 const Migrations = artifacts.require('Migrations')
-const APIv101 = artifacts.require('APIv101')
-const EchoApp = artifacts.require('EchoApp')
+// const APIv101 = artifacts.require('APIv101')
+// const EchoApp = artifacts.require('EchoApp')
 
 // console.log(EchoApp)
 
