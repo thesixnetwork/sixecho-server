@@ -28,16 +28,20 @@ if [ ${_CNT_BUILD} -eq 0 ]; then
     exit 1
 fi
 
-echo "Running Migration for $APINAME on $NETWORK ($ENV)"
+echo "Running Migration for $APINAME on $NETWORK ($ENV) at Storage(${STORAGE_ADDR})"
 STORAGE_ADDR=`echo ${STORAGE_ADDR} | awk -F "0x" '{print $2}'`
-APIADDR=`truffle migrate --network ${NETWORK} -s new_api -r ${STORAGE_ADDR} -a ${APINAME} | grep ${APINAME} | awk -F ":" '{print $2}'`
-# echo "APIADDR =  ${APIADDR}"
-APIADDR=`echo $APIADDR | awk '{print $1}'`
+truffle migrate --network ${NETWORK} -s new_api -r ${STORAGE_ADDR} -a ${APINAME}
+# echo $CMD
+# APIADDR=`$CMD`
+# echo "APIADDR = ${APIADDR}"
+echo -e "Please enter New API address:\c"
+read APIADDR
+# APIADDR=`echo $APIADDR | awk '{print $1}'`
 
-if [ $? -ne 0 ]; then
-    echo "ERROR: Fail to migrate"
-    exit 1
-fi
+# if [ $? -ne 0 ]; then
+#     echo "ERROR: Fail to migrate"
+#     exit 1
+# fi
 
 echo "Deployed API address ${APIADDR}"
 

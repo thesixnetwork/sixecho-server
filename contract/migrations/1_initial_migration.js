@@ -5,8 +5,8 @@ const EchoApp = artifacts.require('EchoApp')
 // console.log(EchoApp)
 
 module.exports = function(deployer) {
-  // deployer.deploy(Migrations)
-  // deployer.deploy(APIv101, '0xe3448491e64604d6e9032794d70f6325921f8247',{overwrite: true})
+  deployer.deploy(Migrations)
+  deployer.deploy(APIv101, '0xb5fde209fccc5ff67ab2848966bb6ef6bb1f1362',{overwrite: true})
 
   // deployer.then(function() {
   //   // appInstance = EchoApp.new();

@@ -22,7 +22,7 @@ module.exports = {
       // port: 8651,
       provider: () =>
         new HDWalletProvider(
-          'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+          '28df7859de12a1b9700deba0ee173312ad1dd9fadeffb2074b9722859d100211',
           'https://api.cypress.klaytn.net:8651'
         ),
       from: '0xb989d084019a899d11e66853688649307f8d5070', // enter your account address

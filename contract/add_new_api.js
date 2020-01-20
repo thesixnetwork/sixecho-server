@@ -1,5 +1,5 @@
 const argv = require('minimist')(process.argv.slice(2));
-console.log(argv)
+// console.log(argv)
 const network_url = argv['n']
 const wallet = '0x'+argv['w']
 const apiAddr = '0x'+argv['a']

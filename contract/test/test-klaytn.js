@@ -30,17 +30,13 @@ getLatestAPIAddress()
 //   .then(console.log)
 //   .catch(console.error)
 
-// addWriter('0x9df799fed9eb39dfc1beb32bad4303d0990725f3')
+// addWriter('0x7ad5fd45c7924b6555d87a99a4deb5d923333d7b')
 //   .then(console.log)
 //   .catch(console.error)
 
-addAsset('1234','5678')
-  .then(console.log)
-  .catch(console.error)
-
-// getLatestAPIAddress()
-//      .then(console.log)
-//      .catch(console.error)
+// addAsset('1234','5678')
+//   .then(console.log)
+//   .catch(console.error)
 
 function addBook(name, isbn) {
   return new Promise((resolve, reject) => {
