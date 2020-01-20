@@ -21,7 +21,7 @@ var (
 	api *eos.API
 	// elasticURL      = os.Getenv("ELASTIC_URL")
 	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	eosURL          = "http://ec2-3-0-89-218.ap-southeast-1.compute.amazonaws.com:8888"
+	eosURL          = "http://3.0.175.142:8888"
 	lambdaFunction  = "SixEchoFunction-ContractClient-17IQBE2B7Y5G7"
 	ctx             = context.Background()
 	currentBlockNum uint32
@@ -61,7 +61,7 @@ func updateBlockNumToES() {
 		"block_num": blockRunning,
 	}
 	docJSON, _ := json.Marshal(doc)
-	_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
+	_, err := client.Index().Index(BlockNumAlias).Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Update Block Error : " + " " + err.Error())
 		// panic(err.Error())
@@ -122,12 +122,16 @@ func loadAllBackgroundProcess(block chan *eos.BlockResp, blockNum chan uint32) {
 	}()
 	go func() {
 		for range time.Tick(time.Second * 1) {
-			infoResp, _ := api.GetInfo()
-			lastBlockNum := infoResp.HeadBlockNum
-			for i := currentBlockNum; i < lastBlockNum; i++ {
-				blockNum <- i
+			infoResp, err := api.GetInfo()
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				lastBlockNum := infoResp.HeadBlockNum
+				for i := currentBlockNum; i < lastBlockNum; i++ {
+					blockNum <- i
+				}
+				currentBlockNum = lastBlockNum
 			}
-			currentBlockNum = lastBlockNum
 		}
 	}()
 	go func() {
@@ -155,8 +159,17 @@ func createIndexElastic() {
 	createErrorsIndex(client)
 }
 
+func createIndexElasticV2() {
+	fmt.Println("Load elasticsearch version 2...")
+	createSSCBlockNumIndexV2(client)
+	createSSCDigitalContentIndexV2(client)
+	createSSCImageIndexV2(client)
+	createSSCTextIndexV2(client)
+	createErrorsIndexV2(client)
+}
+
 func main() {
-	createIndexElastic()
+	createIndexElasticV2()
 	block := make(chan *eos.BlockResp)
 	blockNum := make(chan uint32)
 	eos.RegisterAction(eos.AccountName("assets"), eos.ActionName("create"), SSCDataCreate{})

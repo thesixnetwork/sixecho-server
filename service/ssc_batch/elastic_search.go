@@ -9,14 +9,13 @@ import (
 )
 
 func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32 {
-	elasticAlias := "ssc_blocknum"
-	doc, err := client.Get().Index(elasticAlias).Type("_doc").Id("1").Pretty(true).Do(ctx)
+	doc, err := client.Get().Index(BlockNumAlias).Type("_doc").Id("1").Pretty(true).Do(ctx)
 	if err != nil {
 		doc := map[string]interface{}{
 			"block_num": blockNumber,
 		}
 		docJSON, _ := json.Marshal(doc)
-		_, err := client.Index().Index("ssc_blocknum").Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
+		_, err := client.Index().Index(BlockNumAlias).Type("_doc").Id("1").BodyString(string(docJSON)).Do(ctx)
 		if err != nil {
 			// panic(err.Error())
 			fmt.Println("Get Current BlockNum From ES" + err.Error())
@@ -34,7 +33,6 @@ func getCurrentBlockNumFromES(client *elastic.Client, blockNumber uint32) uint32
 }
 
 func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *eos.Action, assetID string, iData *IData, klaytnTxID string, fromto FromToTransaction, detailvalue *string) {
-	elasticAlias := "ssc_transactions"
 	type Authorization struct {
 		Actor      string `json:"actor"`
 		Permission string `json:"permission"`
@@ -88,7 +86,7 @@ func insertTxToES(blockResp *eos.BlockResp, tx eos.TransactionReceipt, action *e
 		UpdatedAt:         timeStamp.Format("2006-01-02 15:04:05"),
 	}
 	digitalContentJSON, _ := json.Marshal(digitalContent)
-	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(tx.Transaction.ID.String()).BodyString(string(digitalContentJSON)).Do(ctx)
+	_, err := client.Index().Index(TransactionAlias).Type("_doc").Id(tx.Transaction.ID.String()).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error insert transaction to ES")
 		insertError(blockResp.BlockNum, TXCreateError, err.Error())
@@ -169,6 +167,7 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 					sscRevoke := action.Data.(*SSCRevoke)
 					fromto := FromToTransaction{
 						Platform: string(sscRevoke.Platform),
+						Memo:     sscRevoke.Memo,
 					}
 					assetID := fmt.Sprintf("%d", sscRevoke.AssetID)
 					revoke(blockResp, sscRevoke)
@@ -180,7 +179,6 @@ func insertAssetToES(blockResp *eos.BlockResp) {
 }
 
 func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
-	elasticAlias := ImageAlias
 	type DataImage struct {
 		*IData
 		*DetailInfoImage
@@ -216,7 +214,7 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 	dataImage.CreatedAt = timeStamp.Format("2006-01-02 15:04:05")
 	dataImage.UpdatedAt = timeStamp.Format("2006-01-02 15:04:05")
 	digitalContentJSON, _ := json.Marshal(dataImage)
-	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
+	_, err := client.Index().Index(ImageAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error Insert Image To ES : ")
 		insertError(blockResp.BlockNum, ImgCreateError, err.Error())
@@ -224,7 +222,6 @@ func insertImageToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *ID
 }
 
 func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IData) {
-	elasticAlias := TextAlias
 	type DataText struct {
 		*IData
 		*DetailInfoText
@@ -261,7 +258,7 @@ func insertTextToES(blockResp *eos.BlockResp, sscData *SSCDataCreate, iData *IDa
 	dataText.UpdatedAt = timeStamp.Format("2006-01-02 15:04:05")
 
 	digitalContentJSON, _ := json.Marshal(dataText)
-	_, err := client.Index().Index(elasticAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
+	_, err := client.Index().Index(TextAlias).Type("_doc").Id(assetID).BodyString(string(digitalContentJSON)).Do(ctx)
 	if err != nil {
 		fmt.Println("Error Insert Text To ES : ")
 		insertError(blockResp.BlockNum, TextCreateError, err.Error())

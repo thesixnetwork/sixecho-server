@@ -4,7 +4,6 @@ import "github.com/olivere/elastic"
 
 func createSSCBlockNumIndex(client *elastic.Client) {
 	elasticIndex := "ssc_blocknum_v1"
-	elasticAlias := "ssc_blocknum"
 	exists, err := client.IndexExists(elasticIndex).Do(ctx)
 	if err != nil {
 		panic(err.Error())
@@ -34,7 +33,7 @@ func createSSCBlockNumIndex(client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			// Not acknowledged
 		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		_, err = client.Alias().Add(elasticIndex, BlockNumAlias).Do(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -43,7 +42,6 @@ func createSSCBlockNumIndex(client *elastic.Client) {
 
 func createSSCDigitalContentIndex(client *elastic.Client) {
 	elasticIndex := "ssc_transactions_v1"
-	elasticAlias := TransactionAlias
 	exists, err := client.IndexExists(elasticIndex).Do(ctx)
 	if err != nil {
 		panic(err.Error())
@@ -126,7 +124,7 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			// Not acknowledged
 		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		_, err = client.Alias().Add(elasticIndex, TransactionAlias).Do(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -135,7 +133,6 @@ func createSSCDigitalContentIndex(client *elastic.Client) {
 
 func createSSCImageIndex(client *elastic.Client) {
 	elasticIndex := "ssc_images_v1"
-	elasticAlias := ImageAlias
 	exists, err := client.IndexExists(elasticIndex).Do(ctx)
 	if err != nil {
 		panic(err.Error())
@@ -197,6 +194,9 @@ func createSSCImageIndex(client *elastic.Client) {
 									"revoked":{
 										"type":"boolean"
 									},
+									"memo":{
+											"type":"text"
+									},
 									"mdata":{
 										"type":"text"
 									},
@@ -239,7 +239,7 @@ func createSSCImageIndex(client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			// Not acknowledged
 		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		_, err = client.Alias().Add(elasticIndex, ImageAlias).Do(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -248,7 +248,6 @@ func createSSCImageIndex(client *elastic.Client) {
 
 func createSSCTextIndex(client *elastic.Client) {
 	elasticIndex := "ssc_texts_v1"
-	elasticAlias := TextAlias
 	exists, err := client.IndexExists(elasticIndex).Do(ctx)
 	if err != nil {
 		panic(err.Error())
@@ -304,6 +303,9 @@ func createSSCTextIndex(client *elastic.Client) {
 									"revoked":{
 										"type":"boolean"
 									},
+									"memo":{
+											"type":"text"
+									},
 									"mdata":{
 										"type":"text"
 									},
@@ -352,7 +354,7 @@ func createSSCTextIndex(client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			// Not acknowledged
 		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		_, err = client.Alias().Add(elasticIndex, TextAlias).Do(ctx)
 		if err != nil {
 			panic(err)
 		}
@@ -361,7 +363,6 @@ func createSSCTextIndex(client *elastic.Client) {
 
 func createErrorsIndex(client *elastic.Client) {
 	elasticIndex := "ssc_errors_v1"
-	elasticAlias := ErrorAlias
 	exists, err := client.IndexExists(elasticIndex).Do(ctx)
 	if err != nil {
 		panic(err.Error())
@@ -397,7 +398,7 @@ func createErrorsIndex(client *elastic.Client) {
 		if !createIndex.Acknowledged {
 			// Not acknowledged
 		}
-		_, err = client.Alias().Add(elasticIndex, elasticAlias).Do(ctx)
+		_, err = client.Alias().Add(elasticIndex, ErrorAlias).Do(ctx)
 		if err != nil {
 			panic(err)
 		}
