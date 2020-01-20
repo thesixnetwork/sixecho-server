@@ -30,7 +30,8 @@ fi
 
 echo "Running Migration for $APINAME on $NETWORK ($ENV) at Storage(${STORAGE_ADDR})"
 STORAGE_ADDR=`echo ${STORAGE_ADDR} | awk -F "0x" '{print $2}'`
-truffle migrate --network ${NETWORK} -s new_api -r ${STORAGE_ADDR} -a ${APINAME}
+truffle migrate --network ${NETWORK} -s new_api -r ${STORAGE_ADDR} -a ${APINAME} --reset
+# truffle migrate --network testnet -s new_api -r e3448491e64604d6e9032794d70f6325921f8247 -a APIv102 --reset
 # echo $CMD
 # APIADDR=`$CMD`
 # echo "APIADDR = ${APIADDR}"

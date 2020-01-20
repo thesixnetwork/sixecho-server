@@ -30,7 +30,7 @@ contract APIv101 is API ,AccessRestriction,Event {
     function addAsset(string h, string blockNo) public onlyWriter returns (string) {
 
         string memory returnKey;
-        returnKey = _metaDataController.addAsset(h, blockNo);
+        returnKey = _metaDataController.addAsset(h, blockNo,"-");
 
         return returnKey;
 

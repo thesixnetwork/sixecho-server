@@ -5,7 +5,7 @@ import "../controller/MetaDataController.sol";
 import "../security/AccessRestriction.sol";
 import "../common/Event.sol";
 
-contract APIv100 is API ,AccessRestriction,Event {
+contract APIv102 is API ,AccessRestriction,Event {
 
     string constant _version = "v1.0";
 
@@ -27,13 +27,17 @@ contract APIv100 is API ,AccessRestriction,Event {
         return _version;
     }
 
-    function addAsset(string h, string blockNo) public onlyBy(_owner) returns (string) {
+    function addAsset(string h, string blockNo, string platformID) public onlyWriter returns (string) {
 
         string memory returnKey;
-        returnKey = _metaDataController.addAsset(h, blockNo,"-");
+        returnKey = _metaDataController.addAsset(h, blockNo, platformID);
 
         return returnKey;
 
+    }
+
+    function addWriter(address newWriter) public onlyOwner {
+        writers[newWriter] = true;
     }
 
     function addBook(string newKey,

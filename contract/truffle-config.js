@@ -2,7 +2,7 @@
 const HDWalletProvider = require('truffle-hdwallet-provider-klaytn')
 module.exports = {
   networks: {
-    klaytn: {
+    testnet: {
       // host: '127.0.0.1',
       // port: 8551,
       provider: () => new HDWalletProvider('e8151654d9ba440883fd9c15bbd8e3c0d5eabb614ed0ffda2051dea92a95fb9b', "https://api.baobab.klaytn.net:8651"),
@@ -17,7 +17,7 @@ module.exports = {
       //from: '0x5a40651fa12c5c69152d216de4570ddb50321b30', // enter your account address
       network_id: '*' // Baobab network id
     },
-    klaytn_prod: {
+    mainnet: {
       // host: 'api.cypress.klaytn.net',
       // port: 8651,
       provider: () =>
