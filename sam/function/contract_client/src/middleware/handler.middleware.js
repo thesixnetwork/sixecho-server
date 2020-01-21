@@ -1,7 +1,13 @@
 const Caver = require('caver-js');
 const AWS = require('aws-sdk');
 const EchoAPI = require('../abi/contracts/APIv102.json');
-const caver = new Caver(process.env.NETWORK_PROVIDER_URL);
+// const caver = new Caver(process.env.NETWORK_PROVIDER_URL);
+
+const caver = new Caver(
+  new Caver.providers.HttpProvider(process.env.NETWORK_PROVIDER_URL, {
+    timeout: 44000
+  })
+);
 
 let account;
 let feePayer;

@@ -26,7 +26,7 @@ var (
 	elasticURL          = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
 	lambdaFunction      = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
 	lambdaGetWallet     = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
-	smartContactAddress = ""
+	smartContactAddress = "0xad67c0115b1dbb8ba9a263ef49c2a8b14ccf8138"
 	ctx                 = context.Background()
 	region              = os.Getenv("AWS_REGION")
 	cred                = credentials.NewEnvCredentials()
