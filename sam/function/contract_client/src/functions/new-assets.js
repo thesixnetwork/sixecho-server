@@ -77,7 +77,7 @@ class Function {
               return tmp;
             }
             const data = echo
-              .addAsset(body[i].hash, body[i].block_number)
+              .addAsset(body[i].hash, body[i].block_number, body[i].platform)
               .encodeABI();
             const klayRequest = caver.klay.accounts
               .signTransaction(
@@ -139,6 +139,7 @@ class Function {
     const hashSchema = Joi.object().keys({
       hash: Joi.string().required(),
       block_number: Joi.string().required(),
+      platform: Joi.string().required(),
       account: Joi.string().empty(''),
       private_key: Joi.string().empty('')
     });

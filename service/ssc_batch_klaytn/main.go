@@ -23,13 +23,14 @@ import (
 
 var (
 	// elasticURL      = os.Getenv("ELASTIC_URL")
-	elasticURL      = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
-	lambdaFunction  = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
-	lambdaGetWallet = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
-	ctx             = context.Background()
-	region          = os.Getenv("AWS_REGION")
-	cred            = credentials.NewEnvCredentials()
-	signingClient   = v4.NewV4SigningClient(cred, region)
+	elasticURL          = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
+	lambdaFunction      = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
+	lambdaGetWallet     = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
+	smartContactAddress = ""
+	ctx                 = context.Background()
+	region              = os.Getenv("AWS_REGION")
+	cred                = credentials.NewEnvCredentials()
+	signingClient       = v4.NewV4SigningClient(cred, region)
 	// sess            = session.Must(session.NewSession())
 	sess = session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
@@ -117,6 +118,7 @@ func submitToKlaytn(mapAccountTxs []MapAccountTx) ResponseKlatyn {
 			Hash:        t.Transaction.ID,
 			BlockNumber: fmt.Sprintf("%d", t.Transaction.BlockNumber),
 			Account:     t.Account.ID,
+			Platform:    t.Transaction.Platform,
 			PrivateKey:  t.Account.PrivateKey,
 		}
 		kReqs = append(kReqs, tmp)
@@ -325,8 +327,11 @@ func insertAccount(txs []*Transaction) []Account {
 			Platform:   platfromOwner[0],
 			RefOwner:   platfromOwner[1],
 			PrivateKey: encrypt(accountKlaytns[index].PrivateKey),
-			CreatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
-			UpdatedAt:  timeStamp.Format("2006-01-02 15:04:05"),
+			WriterAddresses: []string{
+				smartContactAddress,
+			},
+			CreatedAt: timeStamp.Format("2006-01-02 15:04:05"),
+			UpdatedAt: timeStamp.Format("2006-01-02 15:04:05"),
 		}
 		req.Doc(account)
 		req.Id(strings.ToLower(accountKlaytns[index].Address))
@@ -398,7 +403,11 @@ func createIndexElastic() {
 	createSSCAccountIndex(client)
 }
 
+func createIndexElasticV2() {
+	fmt.Println("Load elasticsearch V2...")
+	createSSCAccountIndexV2(client)
+}
 func main() {
-	createIndexElastic()
+	createIndexElasticV2()
 	backGround()
 }

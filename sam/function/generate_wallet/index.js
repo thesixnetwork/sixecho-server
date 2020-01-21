@@ -5,7 +5,7 @@ const caver = new Caver(
     timeout: 44000
   })
 );
-const EchoAPI = require('./APIv101.json');
+const EchoAPI = require('./APIv102.json');
 const _ = require('lodash');
 const echoAPI = new caver.klay.Contract(
   EchoAPI.abi,

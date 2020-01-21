@@ -28,12 +28,13 @@ type Transaction struct {
 
 // Account strcut
 type Account struct {
-	ID         string `json:"_id,omitempty"`
-	Platform   string `json:"platform"`
-	RefOwner   string `json:"ref_owner"`
-	PrivateKey string `json:"private_key"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
+	ID              string   `json:"_id,omitempty"`
+	Platform        string   `json:"platform"`
+	RefOwner        string   `json:"ref_owner"`
+	PrivateKey      string   `json:"private_key"`
+	WriterAddresses []string `json:"writer_addresses"`
+	CreatedAt       string   `json:"created_at"`
+	UpdatedAt       string   `json:"updated_at"`
 }
 
 // MapAccountTx strcut
@@ -46,6 +47,7 @@ type MapAccountTx struct {
 type KlaytnBody struct {
 	Hash        string `json:"hash"`
 	BlockNumber string `json:"block_number"`
+	Platform    string `json:"platform"`
 	Account     string `json:"account"`
 	PrivateKey  string `json:"private_key"`
 }
