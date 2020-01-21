@@ -1,0 +1,537 @@
+{
+  "contractName": "MetaData",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603580601d6000396000f3006080604052600080fd00a165627a7a7230582009439287db44b1a7527983266d37ca43caec01f2b1f2061edcecdb8e18bbf01b0029",
+  "deployedBytecode": "0x6080604052600080fd00a165627a7a7230582009439287db44b1a7527983266d37ca43caec01f2b1f2061edcecdb8e18bbf01b0029",
+  "sourceMap": "26:250:4:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;26:250:4;;;;;;;",
+  "deployedSourceMap": "26:250:4:-;;;;;",
+  "source": "pragma solidity ^0.4.24;\n\ncontract MetaData {\n    struct MetaDataModel {\n        string title;\n        string author;\n        string lang;\n        string origin;\n        uint256 paperback;\n        uint256 publihDate;\n        uint256 catId;\n        uint256 publisherId;\n    }\n}",
+  "sourcePath": "/Users/zatan007/go/src/github.com/thesixnetwork/sixecho-server/contract/contracts/model/MetaData.sol",
+  "ast": {
+    "absolutePath": "/Users/zatan007/go/src/github.com/thesixnetwork/sixecho-server/contract/contracts/model/MetaData.sol",
+    "exportedSymbols": {
+      "MetaData": [
+        483
+      ]
+    },
+    "id": 484,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 465,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:4"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 483,
+        "linearizedBaseContracts": [
+          483
+        ],
+        "name": "MetaData",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "MetaData.MetaDataModel",
+            "id": 482,
+            "members": [
+              {
+                "constant": false,
+                "id": 467,
+                "name": "title",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "81:12:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 466,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "81:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 469,
+                "name": "author",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "103:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 468,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "103:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 471,
+                "name": "lang",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "126:11:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 470,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "126:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 473,
+                "name": "origin",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "147:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 472,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "147:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 475,
+                "name": "paperback",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "170:17:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 474,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "170:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 477,
+                "name": "publihDate",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "197:18:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 476,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "197:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 479,
+                "name": "catId",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "225:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 478,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "225:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 481,
+                "name": "publisherId",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "248:19:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 480,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "248:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "MetaDataModel",
+            "nodeType": "StructDefinition",
+            "scope": 483,
+            "src": "50:224:4",
+            "visibility": "public"
+          }
+        ],
+        "scope": 484,
+        "src": "26:250:4"
+      }
+    ],
+    "src": "0:276:4"
+  },
+  "legacyAST": {
+    "absolutePath": "/Users/zatan007/go/src/github.com/thesixnetwork/sixecho-server/contract/contracts/model/MetaData.sol",
+    "exportedSymbols": {
+      "MetaData": [
+        483
+      ]
+    },
+    "id": 484,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 465,
+        "literals": [
+          "solidity",
+          "^",
+          "0.4",
+          ".24"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:24:4"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": null,
+        "fullyImplemented": true,
+        "id": 483,
+        "linearizedBaseContracts": [
+          483
+        ],
+        "name": "MetaData",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "canonicalName": "MetaData.MetaDataModel",
+            "id": 482,
+            "members": [
+              {
+                "constant": false,
+                "id": 467,
+                "name": "title",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "81:12:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 466,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "81:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 469,
+                "name": "author",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "103:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 468,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "103:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 471,
+                "name": "lang",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "126:11:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 470,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "126:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 473,
+                "name": "origin",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "147:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_string_storage_ptr",
+                  "typeString": "string"
+                },
+                "typeName": {
+                  "id": 472,
+                  "name": "string",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "147:6:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_string_storage_ptr",
+                    "typeString": "string"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 475,
+                "name": "paperback",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "170:17:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 474,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "170:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 477,
+                "name": "publihDate",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "197:18:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 476,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "197:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 479,
+                "name": "catId",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "225:13:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 478,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "225:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              },
+              {
+                "constant": false,
+                "id": 481,
+                "name": "publisherId",
+                "nodeType": "VariableDeclaration",
+                "scope": 482,
+                "src": "248:19:4",
+                "stateVariable": false,
+                "storageLocation": "default",
+                "typeDescriptions": {
+                  "typeIdentifier": "t_uint256",
+                  "typeString": "uint256"
+                },
+                "typeName": {
+                  "id": 480,
+                  "name": "uint256",
+                  "nodeType": "ElementaryTypeName",
+                  "src": "248:7:4",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_uint256",
+                    "typeString": "uint256"
+                  }
+                },
+                "value": null,
+                "visibility": "internal"
+              }
+            ],
+            "name": "MetaDataModel",
+            "nodeType": "StructDefinition",
+            "scope": 483,
+            "src": "50:224:4",
+            "visibility": "public"
+          }
+        ],
+        "scope": 484,
+        "src": "26:250:4"
+      }
+    ],
+    "src": "0:276:4"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.4.25+commit.59dbf8f1.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.2",
+  "updatedAt": "2019-12-19T06:06:19.704Z"
+}
