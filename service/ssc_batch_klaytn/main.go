@@ -205,8 +205,7 @@ func updateSQL(txs []Transaction) {
 				if db.First(&snapPicture, "snap_id = ?", snapID).RecordNotFound() {
 					fmt.Println("not found")
 				} else {
-					snapPicture.PublicChainID = tx.KlaytnTxID
-					db.Save(&snapPicture)
+					db.Model(&snapPicture).Where("snap_id = ?", snapID).Update("public_chain_id", tx.KlaytnTxID)
 					fmt.Println("update done")
 					fmt.Println(snapID)
 				}
