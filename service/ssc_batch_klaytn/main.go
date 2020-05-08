@@ -169,7 +169,7 @@ func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
 }
 
 func queryImageTransaction(assetID string) TransactionImage {
-	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("asset_id", assetID))
+	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("_id", assetID))
 	response, err := client.Search(ImageAlias).Query(query).Size(1).Do(context.Background())
 	if err != nil {
 		panic(err.Error())
@@ -189,19 +189,27 @@ func queryImageTransaction(assetID string) TransactionImage {
 func updateSQL(txs []Transaction) {
 	db, err := gorm.Open("mysql", sqlDBURL)
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 	defer db.Close()
 	for _, tx := range txs {
 		transaction := queryImageTransaction(tx.AssetID)
-		if (transaction.ID != "" || len(transaction.ID) != 0) && tx.FromPlatform == "snap" && tx.Type == "IMAGE" {
-			fmt.Println("Found snap")
-			fmt.Println(tx.AssetID)
+		if (transaction.Title != "" || len(transaction.Title) != 0) && tx.FromPlatform == "snap" && tx.Type == "IMAGE" {
 			snapID := strings.Replace(transaction.Title, "snap id - ", "", -1)
 			if snapID != "" || len(snapID) != 0 {
 				fmt.Println("update needed")
 				fmt.Println(snapID)
 				fmt.Println(tx.KlaytnTxID)
+				var snapPicture SnapPictures
+				if db.First(&snapPicture, "snap_id = ?", snapID).RecordNotFound() {
+					fmtPrintln("not found")
+				} else {
+					snapPicture.PublicChainID = tx.KlaytnTxID
+					db.Save(&snapPicture)
+					fmt.Println("update done")
+					fmt.Println(snapID)
+				}
 			}
 		}
 	}

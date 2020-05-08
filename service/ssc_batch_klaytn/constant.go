@@ -27,13 +27,20 @@ type Transaction struct {
 	Platform     string `json:"platform"`
 	FromPlatform string `json:"from_platform"`
 	AssetID      string `json:"asset_id"`
-	Type         string `json:"type"`
+	Type         string `json:"asset_type"`
 }
 
 //Transaction struct
 type TransactionImage struct {
 	ID    string
 	Title string `json:"title"`
+}
+
+// SnapPictures struct
+type SnapPictures struct {
+	TxID          *string `json:"tx_id,omitempty"`
+	PublicChainID *string `json:"public_chain_id"`
+	SnapID        *string `json:"snap_id"`
 }
 
 // Account strcut
