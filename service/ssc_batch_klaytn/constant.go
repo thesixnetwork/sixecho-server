@@ -3,6 +3,7 @@ package main
 const (
 	TransactionAlias string = "ssc_transactions"
 	AccountAlias     string = "ssc_accounts"
+	ImageAlias       string = "ssc_images"
 )
 
 //Owner struct
@@ -19,11 +20,20 @@ type AccountKlaytn struct {
 
 //Transaction struct
 type Transaction struct {
-	ID          string
-	KlaytnTxID  string `json:"klaytn_tx_id"`
-	BlockNumber int64  `json:"block_num"`
-	ToUser      Owner  `json:"to_user"`
-	Platform    string `json:"platform"`
+	ID           string
+	KlaytnTxID   string `json:"klaytn_tx_id"`
+	BlockNumber  int64  `json:"block_num"`
+	ToUser       Owner  `json:"to_user"`
+	Platform     string `json:"platform"`
+	FromPlatform string `json:"from_platform"`
+	AssetID      string `json:"asset_id"`
+	Type         string `json:"type"`
+}
+
+//Transaction struct
+type TransactionImage struct {
+	ID    string
+	Title string `json:"title"`
 }
 
 // Account strcut

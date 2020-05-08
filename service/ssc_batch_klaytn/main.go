@@ -19,10 +19,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/olivere/elastic"
 	v4 "github.com/olivere/elastic/aws/v4"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 var (
 	// elasticURL      = os.Getenv("ELASTIC_URL")
+	sqlDBURL            = ""
 	elasticURL          = "https://search-es-six-zunsizmfamv7eawswgdvwmyd6u.ap-southeast-1.es.amazonaws.com"
 	lambdaFunction      = "SixEchoFunction-ContractClient-1L7MXI5A1UIHC"
 	lambdaGetWallet     = "SixEchoFunction-GenerateWallet-10O7YCV3G6VM4"
@@ -162,6 +166,45 @@ func matching(txs []MapAccountTx, klaynTxs []Body) []Transaction {
 	// data, _ := json.Marshal(tmp)
 	// fmt.Println(string(data))
 	return tmp
+}
+
+func queryImageTransaction(assetID string) TransactionImage {
+	query := elastic.NewBoolQuery().Must(elastic.NewTermQuery("asset_id", assetID))
+	response, err := client.Search(ImageAlias).Query(query).Size(1).Do(context.Background())
+	if err != nil {
+		panic(err.Error())
+	}
+	transaction := TransactionImage{}
+	for _, hit := range response.Hits.Hits {
+		data, err := hit.Source.MarshalJSON()
+		if err != nil {
+			panic(err.Error())
+		}
+		err = json.Unmarshal(data, &transaction)
+		transaction.ID = hit.Id
+	}
+	return transaction
+}
+
+func updateSQL(txs []Transaction) {
+	db, err := gorm.Open("mysql", sqlDBURL)
+	if err != nil {
+		return
+	}
+	defer db.Close()
+	for _, tx := range txs {
+		transaction := queryImageTransaction(tx.AssetID)
+		if (transaction.ID != "" || len(transaction.ID) != 0) && tx.FromPlatform == "snap" && tx.Type == "IMAGE" {
+			fmt.Println("Found snap")
+			fmt.Println(tx.AssetID)
+			snapID := strings.Replace(transaction.Title, "snap id - ", "", -1)
+			if snapID != "" || len(snapID) != 0 {
+				fmt.Println("update needed")
+				fmt.Println(snapID)
+				fmt.Println(tx.KlaytnTxID)
+			}
+		}
+	}
 }
 
 func updateElastBatch(txs []Transaction) {
@@ -389,6 +432,7 @@ func allProcess() {
 		if len(responseKlatyn.Body) > 0 {
 			mapTxs := matching(mapAccountTxs, responseKlatyn.Body)
 			updateElastBatch(mapTxs)
+			updateSQL(mapTxs)
 			//doc, _ := json.Marshal(txs)
 			//fmt.Println(string(doc))
 		} else {
