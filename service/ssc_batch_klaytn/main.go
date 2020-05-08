@@ -203,7 +203,7 @@ func updateSQL(txs []Transaction) {
 				fmt.Println(tx.KlaytnTxID)
 				var snapPicture SnapPictures
 				if db.First(&snapPicture, "snap_id = ?", snapID).RecordNotFound() {
-					fmtPrintln("not found")
+					fmt.Println("not found")
 				} else {
 					snapPicture.PublicChainID = tx.KlaytnTxID
 					db.Save(&snapPicture)

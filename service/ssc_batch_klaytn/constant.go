@@ -38,9 +38,9 @@ type TransactionImage struct {
 
 // SnapPictures struct
 type SnapPictures struct {
-	TxID          *string `json:"tx_id,omitempty"`
-	PublicChainID *string `json:"public_chain_id"`
-	SnapID        *string `json:"snap_id"`
+	TxID          string `json:"tx_id,omitempty"`
+	PublicChainID string `json:"public_chain_id"`
+	SnapID        string `json:"snap_id"`
 }
 
 // Account strcut
