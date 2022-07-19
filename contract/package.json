@@ -17,7 +17,7 @@
     "fs": "0.0.1-security",
     "lodash": ">=4.17.13",
     "minimist": "^1.2.0",
-    "properties-reader": "^0.2.0",
+    "properties-reader": "^2.2.0",
     "solc": "^0.4.24",
     "truffle": "^4.1.15",
     "truffle-hdwallet-provider-klaytn": "^1.0.13-a",
